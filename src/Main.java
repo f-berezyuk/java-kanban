@@ -17,35 +17,36 @@ public class Main {
         EpicTask epicTask1 = new EpicTask("EpicTask 1", "EpicTask for tests");
         SubTask subTask1 = new SubTask("SubTask 1 for EpicTask 1", "SubTask for tests");
         SubTask subTask2 = new SubTask("SubTask 2 for EpicTask 1", "SubTask for tests");
-        epicTask1.addAll(subTask1, subTask2);
         EpicTask epicTask2 = new EpicTask("EpicTask 2", "EpicTask for tests");
-        SubTask subTask3 = new SubTask(epicTask2, "SubTask 3 for EpicTask 2", "SubTask for tests");
+        SubTask subTask3 = new SubTask("SubTask 3 for EpicTask 2", "SubTask for tests");
 
         manager.addTask(task1);
         manager.addTask(task2);
         manager.addTask(epicTask1);
         manager.addTask(subTask1);
         manager.addTask(subTask2);
+        manager.addAllToEpic(epicTask1.getId(), subTask1.getId(), subTask2.getId());
         manager.addTask(epicTask2);
         manager.addTask(subTask3);
+        manager.addToEpic(epicTask2.getId(), subTask3.getId());
 
         System.out.println("Initial state.");
         System.out.println(manager);
 
         System.out.println("All Task.class tasks:");
-        System.out.println(Arrays.toString(new List[]{manager.getAllTasks(Task.class)}));
+        System.out.println(Arrays.toString(new List[]{manager.getAllTasks()}));
         System.out.println();
 
         System.out.println("All SubTask.class tasks:");
-        System.out.println(Arrays.toString(new List[]{manager.getAllTasks(SubTask.class)}));
+        System.out.println(Arrays.toString(new List[]{manager.getAllSubTasks()}));
         System.out.println();
 
         System.out.println("All EpicTask.class tasks:");
-        System.out.println(Arrays.toString(new List[]{manager.getAllTasks(EpicTask.class)}));
+        System.out.println(Arrays.toString(new List[]{manager.getAllEpicTasks()}));
         System.out.println();
 
         System.out.println("Find Task.class task by id:");
-        System.out.println(manager.findTaskById(Task.class, task1.getId()));
+        System.out.println(manager.findTaskById(task1.getId()));
         System.out.println();
 
         System.out.println("Find Any.class task by id:");
@@ -78,8 +79,8 @@ public class Main {
 
         System.out.println("Update SubTask 1 status. EpicTask 1 should update status too.");
         manager.updateStatus(subTask1.getId(), Status.IN_PROGRESS);
-        System.out.println("subTask1 = " + subTask1);
-        System.out.println("epicTask1 = " + epicTask1);
+        System.out.println("subTask1 status = " + subTask1.getStatus());
+        System.out.println("epicTask1 status = " + epicTask1.getStatus());
         System.out.println();
 
         System.out.println("Update SubTask 1 and 2 status to DONE. EpicTask 1 should update status to DONE.");
@@ -117,15 +118,23 @@ public class Main {
         manager.addTask(task1);
         manager.addTask(epicTask2);
         manager.addTask(subTask1);
-        epicTask2.add(subTask1);
+        manager.addToEpic(epicTask2.getId(), subTask1.getId());
         System.out.println(manager);
 
         System.out.println("Remove all tasks (type Task).");
-        manager.removeAllTasks(Task.class);
+        manager.removeAllTasks();
+        System.out.println(manager);
+
+        System.out.println("Remove all sub tasks.");
+        manager.removeAllSubTasks();
+        System.out.println(manager);
+
+        System.out.println("Remove all epic tasks.");
+        manager.removeAllEpicTasks();
         System.out.println(manager);
 
         System.out.println("Remove all tasks.");
-        manager.removeAllTasks();
+        manager.removeAll();
         System.out.println(manager);
     }
 

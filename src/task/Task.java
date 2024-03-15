@@ -3,15 +3,16 @@ package task;
 import java.util.Objects;
 
 public class Task {
-    private static Long idGeneratorCount = 0L;
-    protected final Long id;
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    protected Long id;
     protected String name;
     protected String description;
     protected Status status;
 
     public Task() {
-        idGeneratorCount++;
-        this.id = idGeneratorCount;
         this.status = Status.NEW;
     }
 
@@ -78,9 +79,5 @@ public class Task {
                 && Objects.equals(name, ((Task) obj).name)
                 && Objects.equals(description, ((Task) obj).description)
                 && status == ((Task) obj).status);
-    }
-
-    public Long[] clean() {
-        return new Long[0];
     }
 }

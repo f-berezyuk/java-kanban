@@ -1,12 +1,7 @@
 package task;
 
 public class SubTask extends Task {
-    private EpicTask parent;
-
-    public SubTask(EpicTask parent, String name, String description) {
-        super(name, description);
-        setParent(parent);
-    }
+    private Long parent;
 
     public SubTask(String name, String description) {
         super(name, description);
@@ -15,20 +10,14 @@ public class SubTask extends Task {
     @Override
     public void updateStatus(Status status) {
         super.updateStatus(status);
-        parent.updateStatus();
     }
 
-    public EpicTask getParent() {
+    public Long getParent() {
         return parent;
     }
 
-    public void setParent(EpicTask parent) {
-        if (parent != null) {
-            this.parent = parent;
-            parent.add(this);
-        } else {
-            throw new IllegalArgumentException("Attempt to set null parent.");
-        }
+    public void setParent(Long parent) {
+        this.parent = parent;
     }
 
     public void removeParent() {
@@ -37,7 +26,7 @@ public class SubTask extends Task {
 
     @Override
     public String toString() {
-        String parentId = parent != null ? String.valueOf(parent.id) : "null";
+        String parentId = parent != null ? String.valueOf(parent) : "null";
         return "SubTask{" +
                 "id=" + id +
                 ", name='" + name + '\'' +
@@ -45,13 +34,5 @@ public class SubTask extends Task {
                 ", status=" + status +
                 ", parent id=" + parentId +
                 '}';
-    }
-
-    @Override
-    public Long[] clean() {
-        if (parent != null) {
-            this.parent.removeSubTask(this);
-        }
-        return super.clean();
     }
 }
