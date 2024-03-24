@@ -19,12 +19,11 @@ import task.TaskType;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
 
-
 class InMemoryTaskManagerTest {
-
     private final Random random = new Random();
     TaskManager taskManager;
 
@@ -61,13 +60,44 @@ class InMemoryTaskManagerTest {
     }
 
     @Test
+    void shouldUpdateTask() {
+        SimpleTask task = createRandomSimpleTask();
+        SimpleTask updateTask = createRandomSimpleTask();
+
+        Long id = taskManager.addTask(task);
+        updateTask.setId(id);
+        taskManager.updateTask(updateTask);
+
+        assertEquals(updateTask, taskManager.findSimpleTask(id));
+    }
+
+    @Test
+    void shouldThrowIfAddTaskWithExistedId() {
+        SimpleTask task = createRandomSimpleTask();
+        task.setId(0L);
+
+        Long id = taskManager.addTask(createRandomSimpleTask());
+
+        assertEquals(task.getId(), id);
+        assertThrows(IllegalArgumentException.class, () -> taskManager.addTask(task));
+    }
+
+    @Test
+    void shouldReturnNullWhenNotExistedId() {
+        assertNull(taskManager.findTaskById(-1L));
+        assertNull(taskManager.findSubTask(-1L));
+        assertNull(taskManager.findSimpleTask(-1L));
+        assertNull(taskManager.findEpicTask(-1L));
+        assertNull(taskManager.findTasksByParentId(-1L));
+    }
+
+    @Test
     void findEpicTaskShouldReturnExpected() {
         EpicTask task = createRandomEpicTask();
         Long id = taskManager.addTask(task);
 
         assertEquals(task, taskManager.findEpicTask(id));
     }
-
 
     @Test
     void subTaskShouldHasParent() {
@@ -193,6 +223,57 @@ class InMemoryTaskManagerTest {
         assertArrayEquals(ids.subList(ids.size() - 10, ids.size()).toArray(), actual);
     }
 
+    @Test
+    void shouldRemoveTask() {
+        SimpleTask task = createRandomSimpleTask();
+        Long id = taskManager.addTask(task);
+
+        taskManager.removeTask(id);
+
+        assertNull(taskManager.findTaskById(id));
+        assertEquals(0, taskManager.getAllTasks().size());
+    }
+
+    @Test
+    void shouldRemoveEpicAndSubTaskWhenRecursiveRemove() {
+        List<SubTask> tasks = new ArrayList<>();
+        for (int i = 0; i < 10; i++) {
+            tasks.add(createRandomSubTask());
+        }
+
+        EpicTask epicTask = createRandomEpicTask();
+
+        Long eid = taskManager.addTask(epicTask);
+        tasks.forEach(taskManager::addTask);
+
+        taskManager.addSubTasksToEpic(eid, tasks.stream().map(Task::getId).toArray(Long[]::new));
+
+        assertEquals(11, taskManager.getAllTasks().size());
+        assertEquals(10, taskManager.findTasksByParentId(epicTask).size());
+
+        taskManager.removeRecursiveTask(eid);
+        assertNull(taskManager.findEpicTask(eid));
+        assertNull(taskManager.findTasksByParentId(eid));
+        assertEquals(0, taskManager.getAllTasksByType(TaskType.SUB).size());
+    }
+
+    @Test
+    void shouldRemoveOnlySubTasksFromEpic() {
+        SubTask subTask1 = createRandomSubTask();
+        SubTask subTask2 = createRandomSubTask();
+        SubTask subTask3 = createRandomSubTask();
+        EpicTask epicTask = createRandomEpicTask();
+        taskManager.addTask(subTask1);
+        taskManager.addTask(subTask2);
+        taskManager.addTask(subTask3);
+        taskManager.addTask(epicTask);
+        taskManager.addSubTasksToEpic(epicTask.getId(), subTask1.getId(), subTask2.getId());
+
+        taskManager.removeRecursiveTask(epicTask.getId());
+
+        assertEquals(subTask3, taskManager.findSubTask(subTask3.getId()));
+    }
+
     private EpicTask createRandomEpicTask() {
         return new EpicTask("Name " + random.nextInt(), "Description " + random.nextDouble());
     }
@@ -210,10 +291,10 @@ class InMemoryTaskManagerTest {
 
         HashSet<T> hashSet = new HashSet<>(expected);
         actual.forEach(hashSet::remove);
-        for (T t : hashSet) {
-            System.out.println("t = " + t);
-        }
         if (!hashSet.isEmpty()) {
+            for (T t : hashSet) {
+                System.out.println("t = " + t);
+            }
             System.out.println("Expected contains " + hashSet.size() + " values that not matched.");
             for (T t : hashSet) {
                 System.out.println("Value = " + t);

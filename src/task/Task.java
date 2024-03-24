@@ -8,12 +8,11 @@ public abstract class Task {
     protected String description;
     protected EStatus status;
     protected TaskType type;
+
     public Task() {
         this.status = EStatus.NEW;
         setType();
     }
-
-    protected abstract void setType();
 
     public Task(String name, String description) {
         this();
@@ -29,6 +28,8 @@ public abstract class Task {
         status = clone.status;
         type = clone.type;
     }
+
+    protected abstract void setType();
 
     public Long getId() {
         return id;

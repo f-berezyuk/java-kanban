@@ -5,10 +5,15 @@ import java.util.HashSet;
 import java.util.List;
 
 public class EpicTask extends Task {
-    private final HashSet<Long> subTasksIds = new HashSet<>();
+    private HashSet<Long> subTasksIds = new HashSet<>();
 
     public EpicTask(String name, String description) {
         super(name, description);
+    }
+
+    public EpicTask(EpicTask result) {
+        super(result);
+        this.subTasksIds = result.subTasksIds;
     }
 
     @Override

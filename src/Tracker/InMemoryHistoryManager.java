@@ -7,8 +7,8 @@ import task.Task;
 
 public class InMemoryHistoryManager<T extends Task> implements HistoryManager<T> {
 
-    private List<T> collection;
     private final int memory = 10;
+    private List<T> collection;
 
     public InMemoryHistoryManager() {
         collection = new ArrayList<>();
@@ -17,7 +17,7 @@ public class InMemoryHistoryManager<T extends Task> implements HistoryManager<T>
     @Override
     public List<T> getHistoryObjects() {
         int size = collection.size();
-        if(size > 0) {
+        if (size > 0) {
             int fromIndex = Math.max(size - memory, 0);
             return collection.subList(fromIndex, size);
         }

@@ -7,6 +7,11 @@ public class SubTask extends Task {
         super(name, description);
     }
 
+    public SubTask(SubTask result) {
+        super(result);
+        this.parent = result.parent;
+    }
+
     @Override
     protected void setType() {
         this.type = TaskType.SUB;

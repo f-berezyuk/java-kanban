@@ -29,7 +29,12 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public Long addTask(Task task) {
-        task.setId(idGeneratorCount++);
+        if (task.getId() == null) {
+            task.setId(idGeneratorCount++);
+        } else if (findTaskById(task.getId()) != null) {
+            throw new IllegalArgumentException("Attempt to rewrite existed task.");
+        }
+
         switch (task.getType()) {
             case SUB -> {
                 subTasks.put(task.getId(), (SubTask) task);
@@ -37,7 +42,6 @@ public class InMemoryTaskManager implements TaskManager {
             }
             case TASK -> simpleTasks.put(task.getId(), (SimpleTask) task);
             case EPIC -> epicTasks.put(task.getId(), (EpicTask) task);
-            default -> throw new IllegalArgumentException("Task should goes with task type.");
         }
 
         return task.getId();
@@ -66,17 +70,21 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public Task findTaskById(Long id) {
         Task result = null;
+        Task copy = null;
         if (simpleTasks.containsKey(id)) {
             result = simpleTasks.get(id);
+            copy = new SimpleTask(result);
         }
         if (epicTasks.containsKey(id)) {
             result = epicTasks.get(id);
+            copy = new EpicTask((EpicTask) result);
         }
         if (subTasks.containsKey(id)) {
             result = subTasks.get(id);
+            copy = new SubTask((SubTask) result);
         }
         if (result != null) {
-            historyManager.addObjectToHistory(result);
+            historyManager.addObjectToHistory(copy);
         }
         return result;
     }
@@ -146,15 +154,17 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void updateTask(Task task) {
+        Task result = null;
         switch (task.getType()) {
             case SUB -> {
-                subTasks.replace(task.getId(), (SubTask) task);
+                result = subTasks.replace(task.getId(), (SubTask) task);
                 checkEpicStatus(((SubTask) task).getParent());
             }
-            case TASK -> simpleTasks.replace(task.getId(), (SimpleTask) task);
-            case EPIC -> epicTasks.replace(task.getId(), (EpicTask) task);
-            default -> throw new IllegalArgumentException("Task should goes with task type.");
+            case TASK -> result = simpleTasks.replace(task.getId(), (SimpleTask) task);
+            case EPIC -> result = epicTasks.replace(task.getId(), (EpicTask) task);
         }
+        if (result == null)
+            throw new IllegalArgumentException("Task with id: [" + task.getId() + "] does not exist.");
     }
 
     @Override
@@ -194,9 +204,7 @@ public class InMemoryTaskManager implements TaskManager {
         switch (task.getType()) {
             case TASK -> simpleTasks.remove(id);
             case EPIC -> {
-                ((EpicTask) task).getSubTasksIds().stream()
-                        .filter(subTasks::containsKey)
-                        .forEach(sid -> subTasks.get(sid).removeParent());
+                ((EpicTask) task).getSubTasksIds().stream().filter(subTasks::containsKey).forEach(sid -> subTasks.get(sid).removeParent());
                 epicTasks.remove(id);
             }
             case SUB -> {
@@ -271,8 +279,11 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public List<SubTask> findTasksByParentId(Long parentId) {
-        return epicTasks.get(parentId).getSubTasksIds().stream().map(this::findSubTask).toList();
+        EpicTask epicTask = epicTasks.get(parentId);
+        if (epicTask != null) {
+            return epicTask.getSubTasksIds().stream().map(this::findSubTask).toList();
+        }
+
+        return null;
     }
-
-
 }
