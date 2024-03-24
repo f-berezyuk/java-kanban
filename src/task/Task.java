@@ -2,19 +2,18 @@ package task;
 
 import java.util.Objects;
 
-public class Task {
-    public void setId(Long id) {
-        this.id = id;
-    }
-
+public abstract class Task {
     protected Long id;
     protected String name;
     protected String description;
-    protected Status status;
-
+    protected EStatus status;
+    protected TaskType type;
     public Task() {
-        this.status = Status.NEW;
+        this.status = EStatus.NEW;
+        setType();
     }
+
+    protected abstract void setType();
 
     public Task(String name, String description) {
         this();
@@ -23,14 +22,20 @@ public class Task {
     }
 
     public Task(Task clone) {
+        this();
         id = clone.id;
         name = clone.name;
         description = clone.description;
         status = clone.status;
+        type = clone.type;
     }
 
     public Long getId() {
         return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getName() {
@@ -49,27 +54,28 @@ public class Task {
         this.description = description;
     }
 
-    public Status getStatus() {
+    public EStatus getStatus() {
         return status;
     }
 
-    public void updateStatus(Status status) {
+    public void setStatus(EStatus status) {
         this.status = status;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, description, status);
+        int result = id.hashCode();
+        result = 37 * result + name.hashCode();
+        result = 37 * result + description.hashCode();
+        result = 37 * result + status.hashCode();
+        result = 37 * result + type.hashCode();
+        return result;
     }
 
     @Override
     public String toString() {
-        return "Task{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", description='" + description + '\'' +
-                ", status=" + status +
-                '}';
+        // [TYPE-123/NEW] Name: Description.
+        return "[" + type + "-" + id + "/" + status + "] " + name + ": " + description;
     }
 
     @Override
@@ -79,5 +85,9 @@ public class Task {
                 && Objects.equals(name, ((Task) obj).name)
                 && Objects.equals(description, ((Task) obj).description)
                 && status == ((Task) obj).status);
+    }
+
+    public TaskType getType() {
+        return this.type;
     }
 }

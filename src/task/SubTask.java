@@ -8,8 +8,13 @@ public class SubTask extends Task {
     }
 
     @Override
-    public void updateStatus(Status status) {
-        super.updateStatus(status);
+    protected void setType() {
+        this.type = TaskType.SUB;
+    }
+
+    @Override
+    public void setStatus(EStatus status) {
+        super.setStatus(status);
     }
 
     public Long getParent() {
@@ -27,12 +32,6 @@ public class SubTask extends Task {
     @Override
     public String toString() {
         String parentId = parent != null ? String.valueOf(parent) : "null";
-        return "SubTask{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", description='" + description + '\'' +
-                ", status=" + status +
-                ", parent id=" + parentId +
-                '}';
+        return super.toString() + " Parent: " + parentId;
     }
 }

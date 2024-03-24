@@ -11,12 +11,26 @@ public class EpicTask extends Task {
         super(name, description);
     }
 
-    public List<Long> getSubTasksIds() {
-        return subTasksIds.stream().toList();
+    @Override
+    protected void setType() {
+        this.type = TaskType.EPIC;
     }
 
     public void addSubTask(Long id) {
         subTasksIds.add(id);
+    }
+
+    public void addSubTasks(Long... ids) {
+        subTasksIds.addAll(Arrays.stream(ids).toList());
+    }
+
+    public List<Long> getSubTasksIds() {
+        return subTasksIds.stream().toList();
+    }
+
+    @Override
+    public void setStatus(EStatus status) {
+        this.status = status;
     }
 
     public void removeSubTask(Long id) {
@@ -24,23 +38,8 @@ public class EpicTask extends Task {
     }
 
     @Override
-    public void updateStatus(Status status) {
-        this.status = status;
-    }
-
-    @Override
     public String toString() {
         Long[] subTasksIds = getSubTasksIds().toArray(Long[]::new);
-        return "EpicTask{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", description='" + description + '\'' +
-                ", status=" + status +
-                ", subTask ids=" + Arrays.toString(subTasksIds) +
-                "}";
-    }
-
-    public void removeSubTasks() {
-        subTasksIds.clear();
+        return super.toString() + " SubTasks: " + Arrays.toString(subTasksIds);
     }
 }
