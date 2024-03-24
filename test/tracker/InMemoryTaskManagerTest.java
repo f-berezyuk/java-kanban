@@ -1,4 +1,4 @@
-package Tracker;
+package tracker;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -29,7 +29,7 @@ class InMemoryTaskManagerTest {
 
     @BeforeEach
     void setUp() {
-        taskManager = Tracker.Managers.getDefault();
+        taskManager = tracker.Managers.getDefault();
     }
 
     @AfterEach
