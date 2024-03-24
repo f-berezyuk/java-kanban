@@ -43,6 +43,7 @@ public interface TaskManager {
     void removeAllByType(TaskType type);
 
     List<? extends Task> getTaskHistory();
+
     String getHistory();
 
     List<SubTask> findTasksByParentId(EpicTask task);
