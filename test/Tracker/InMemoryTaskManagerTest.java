@@ -37,13 +37,13 @@ class InMemoryTaskManagerTest {
     }
 
     @Test
-    public void taskManagerShouldWorkAfterInit() {
+    public void shouldWorkAfterInit() {
         taskManager.printAllTasks();
         taskManager.getHistory();
     }
 
     @Test
-    void addNewTask() {
+    void shouldAddNewTask() {
         Task task = new SimpleTask("Test addNewTask", "Test addNewTask description");
         final Long taskId = taskManager.addTask(task);
 
@@ -92,7 +92,7 @@ class InMemoryTaskManagerTest {
     }
 
     @Test
-    void findEpicTaskShouldReturnExpected() {
+    void whenFindEpicTaskShouldReturnExpected() {
         EpicTask task = createRandomEpicTask();
         Long id = taskManager.addTask(task);
 
@@ -114,7 +114,7 @@ class InMemoryTaskManagerTest {
     }
 
     @Test
-    void getAllTasks() {
+    void shouldGetAllTasks() {
         List<Task> tasks = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
             tasks.add(createRandomEpicTask());
@@ -129,7 +129,7 @@ class InMemoryTaskManagerTest {
     }
 
     @Test
-    void getAllTasksByType() {
+    void shouldGetAllTasksByType() {
         List<SimpleTask> simpleTasks = new ArrayList<>();
         List<SubTask> subTasks = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
