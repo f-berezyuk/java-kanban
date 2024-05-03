@@ -6,16 +6,6 @@ import java.util.List;
 
 import task.Task;
 
-class Node {
-    public Task value;
-    public Node next;
-    public Node prev;
-
-    public Node(Task task) {
-        value = task;
-    }
-}
-
 public class MySimpleLinkedHashMap {
     private final HashMap<Long, Node> taskIdToNode;
     Node head;
@@ -102,6 +92,16 @@ public class MySimpleLinkedHashMap {
         }
 
         return tasks;
+    }
+
+    private static class Node {
+        public Task value;
+        public Node next;
+        public Node prev;
+
+        public Node(Task task) {
+            value = task;
+        }
     }
 }
 
