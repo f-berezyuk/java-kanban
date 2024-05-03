@@ -7,7 +7,7 @@ public class Managers {
         return new InMemoryTaskManager();
     }
 
-    public static HistoryManager<Task> getTasksHistoryManager() {
-        return new InMemoryHistoryManager<>();
+    public static HistoryManager getTasksHistoryManager() {
+        return new InMemoryHistoryManager();
     }
 }

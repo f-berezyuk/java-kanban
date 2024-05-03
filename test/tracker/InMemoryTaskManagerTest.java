@@ -208,7 +208,7 @@ class InMemoryTaskManagerTest {
     }
 
     @Test
-    public void shouldReturnMthLastFindOperations() {
+    public void shouldReturnAllHistoryOperations() {
         List<Long> ids = new ArrayList<>();
         for (int i = 0; i < 100; i++) {
             ids.add(taskManager.addTask(createRandomSimpleTask()));
@@ -220,7 +220,7 @@ class InMemoryTaskManagerTest {
         Long[] actual = taskManager.getTaskHistory().stream().map(Task::getId).toArray(Long[]::new);
 
         System.out.println("taskManager.getHistory() = " + taskManager.getHistory());
-        assertArrayEquals(ids.subList(ids.size() - 10, ids.size()).toArray(), actual);
+        assertArrayEquals(ids.toArray(), actual);
     }
 
     @Test

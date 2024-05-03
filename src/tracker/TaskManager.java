@@ -42,7 +42,7 @@ public interface TaskManager {
 
     void removeAllByType(TaskType type);
 
-    List<? extends Task> getTaskHistory();
+    List<Task> getTaskHistory();
 
     String getHistory();
 

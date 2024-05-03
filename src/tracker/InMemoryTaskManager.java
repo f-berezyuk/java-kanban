@@ -17,7 +17,7 @@ public class InMemoryTaskManager implements TaskManager {
     private final HashMap<Long, SimpleTask> simpleTasks;
     private final HashMap<Long, EpicTask> epicTasks;
     private final HashMap<Long, SubTask> subTasks;
-    private final HistoryManager<Task> historyManager;
+    private final HistoryManager historyManager;
 
     public InMemoryTaskManager() {
         idGeneratorCount = 0L;
@@ -84,7 +84,7 @@ public class InMemoryTaskManager implements TaskManager {
             copy = new SubTask((SubTask) result);
         }
         if (result != null) {
-            historyManager.addObjectToHistory(copy);
+            historyManager.add(copy);
         }
         return result;
     }
@@ -263,13 +263,13 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public List<? extends Task> getTaskHistory() {
-        return historyManager.getHistoryObjects();
+    public List<Task> getTaskHistory() {
+        return historyManager.getHistory();
     }
 
     @Override
     public String getHistory() {
-        return historyManager.getHistory();
+        return historyManager.getHistoryAsString();
     }
 
     @Override
