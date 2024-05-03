@@ -286,6 +286,26 @@ class InMemoryTaskManagerTest {
     }
 
     @Test
+    void shouldAddTaskIntoHistoryWhenAdd() {
+        Task task = createRandomEpicTask();
+
+        taskManager.addTask(task);
+
+        assertEquals(taskManager.getHistory().get(0), task);
+    }
+
+
+    @Test
+    void shouldRemoveHistoryNotesWhenRemoveTask() {
+        Task task = createRandomEpicTask();
+        taskManager.addTask(task);
+
+        taskManager.removeTask(task.getId());
+
+        assertEquals(0, taskManager.getHistory().size());
+    }
+
+    @Test
     void extraTask() {
         Task simpleTask1 = createRandomSimpleTask();
         Task simpleTask2 = createRandomSimpleTask();
