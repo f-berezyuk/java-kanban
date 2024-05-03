@@ -17,15 +17,12 @@ class Node {
 }
 
 public class MySimpleLinkedHashMap {
+    private final HashMap<Long, Node> taskIdToNode;
     Node head;
     Node tail;
-    private int size = 0;
-    private HashMap<Integer, Node> indexToNode;
-    private HashMap<Long, Integer> taskIdToIndex;
 
     MySimpleLinkedHashMap() {
-        indexToNode = new HashMap<>();
-        taskIdToIndex = new HashMap<>();
+        taskIdToNode = new HashMap<>();
         head = null;
         tail = null;
     }
@@ -33,8 +30,8 @@ public class MySimpleLinkedHashMap {
     void addLast(Task task) {
         Node node = new Node(task);
 
-        if (taskIdToIndex.containsKey(task.getId())) {
-            remove(taskIdToIndex.get(task.getId()));
+        if (taskIdToNode.containsKey(task.getId())) {
+            removeById(task.getId());
         }
 
         if (head == null) {
@@ -50,31 +47,15 @@ public class MySimpleLinkedHashMap {
             tail = node;
         }
 
-        indexToNode.put(size, node);
-        taskIdToIndex.put(task.getId(), size);
-        size++;
+        taskIdToNode.put(task.getId(), node);
     }
 
-    Task get(int index) {
-        return indexToNode.get(index).value;
-    }
-
-    Task removeById(Long taskId) {
-        return remove(taskIdToIndex.get(taskId));
-    }
-
-    Task remove(int index) {
-        Node node = indexToNode.get(index);
-        remove(node);
-        taskIdToIndex.remove(node.value.getId());
-        for (int i = index; i < size - 1; i++) {
-            Node tmp = indexToNode.get(i + 1);
-            indexToNode.put(i, tmp);
-            taskIdToIndex.put(tmp.value.getId(), i);
+    void removeById(Long taskId) {
+        Node node = taskIdToNode.get(taskId);
+        if (node != null) {
+            remove(node);
+            taskIdToNode.remove(taskId);
         }
-        size--;
-        indexToNode.remove(size);
-        return node.value;
     }
 
     private void remove(Node node) {
@@ -100,8 +81,8 @@ public class MySimpleLinkedHashMap {
                 tail.next = null;
             }
         } else {
-            Node prev = node.prev; // A
-            Node next = node.next; // C
+            Node prev = node.prev;
+            Node next = node.next;
             prev.next = next;
             next.prev = prev;
         }
@@ -113,7 +94,7 @@ public class MySimpleLinkedHashMap {
     }
 
     public List<Task> getValues() {
-        List<Task> tasks = new ArrayList<>(size);
+        List<Task> tasks = new ArrayList<>(taskIdToNode.size());
         Node next = head;
         while (next != null) {
             tasks.add(next.value);

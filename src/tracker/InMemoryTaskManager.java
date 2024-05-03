@@ -44,6 +44,8 @@ public class InMemoryTaskManager implements TaskManager {
             case EPIC -> epicTasks.put(task.getId(), (EpicTask) task);
         }
 
+        historyManager.add(task);
+
         return task.getId();
     }
 
@@ -217,6 +219,8 @@ public class InMemoryTaskManager implements TaskManager {
             default -> {
             }
         }
+
+        historyManager.remove(id);
     }
 
     @Override
@@ -226,6 +230,7 @@ public class InMemoryTaskManager implements TaskManager {
             case TASK -> simpleTasks.remove(id);
             case EPIC -> {
                 ((EpicTask) task).getSubTasksIds().forEach(subTasks::remove);
+                ((EpicTask) task).getSubTasksIds().forEach(historyManager::remove);
                 epicTasks.remove(id);
             }
             case SUB -> {
@@ -236,6 +241,8 @@ public class InMemoryTaskManager implements TaskManager {
             default -> {
             }
         }
+
+        historyManager.remove(id);
     }
 
     @Override
@@ -263,12 +270,12 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public List<Task> getTaskHistory() {
+    public List<Task> getHistory() {
         return historyManager.getHistory();
     }
 
     @Override
-    public String getHistory() {
+    public String getHistoryAsString() {
         return historyManager.getHistoryAsString();
     }
 
