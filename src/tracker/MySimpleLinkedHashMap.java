@@ -8,8 +8,8 @@ import task.Task;
 
 public class MySimpleLinkedHashMap {
     private final HashMap<Long, Node> taskIdToNode;
-    Node head;
-    Node tail;
+    private Node head;
+    private Node tail;
 
     MySimpleLinkedHashMap() {
         taskIdToNode = new HashMap<>();
