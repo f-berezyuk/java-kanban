@@ -141,7 +141,7 @@ public class Main {
         manager.removeAll();
         System.out.println(manager.printAllTasks());
 
-        System.out.println("History = " + manager.getHistory());
+        System.out.println("History = " + manager.getHistoryAsString());
     }
 
 }

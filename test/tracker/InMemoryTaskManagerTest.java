@@ -39,7 +39,7 @@ class InMemoryTaskManagerTest {
     @Test
     public void shouldWorkAfterInit() {
         taskManager.printAllTasks();
-        taskManager.getHistory();
+        taskManager.getHistoryAsString();
     }
 
     @Test
@@ -208,7 +208,7 @@ class InMemoryTaskManagerTest {
     }
 
     @Test
-    public void shouldReturnMthLastFindOperations() {
+    public void shouldReturnAllHistoryOperations() {
         List<Long> ids = new ArrayList<>();
         for (int i = 0; i < 100; i++) {
             ids.add(taskManager.addTask(createRandomSimpleTask()));
@@ -217,10 +217,10 @@ class InMemoryTaskManagerTest {
         for (Long id : ids) {
             taskManager.findTaskById(id);
         }
-        Long[] actual = taskManager.getTaskHistory().stream().map(Task::getId).toArray(Long[]::new);
+        Long[] actual = taskManager.getHistory().stream().map(Task::getId).toArray(Long[]::new);
 
-        System.out.println("taskManager.getHistory() = " + taskManager.getHistory());
-        assertArrayEquals(ids.subList(ids.size() - 10, ids.size()).toArray(), actual);
+        System.out.println("taskManager.getHistory() = " + taskManager.getHistoryAsString());
+        assertArrayEquals(ids.toArray(), actual);
     }
 
     @Test
@@ -272,6 +272,81 @@ class InMemoryTaskManagerTest {
         taskManager.removeRecursiveTask(epicTask.getId());
 
         assertEquals(subTask3, taskManager.findSubTask(subTask3.getId()));
+    }
+
+    @Test
+    void shouldNotThrowWhenUpdateTaskId() {
+        SimpleTask task = createRandomSimpleTask();
+        taskManager.addTask(task);
+        Long oldId = task.getId();
+
+        taskManager.findSimpleTask(oldId).setId(random.nextLong());
+
+        assertNotNull(taskManager.findSimpleTask(oldId));
+    }
+
+    @Test
+    void shouldAddTaskIntoHistoryWhenAdd() {
+        Task task = createRandomEpicTask();
+
+        taskManager.addTask(task);
+
+        assertEquals(taskManager.getHistory().get(0), task);
+    }
+
+
+    @Test
+    void shouldRemoveHistoryNotesWhenRemoveTask() {
+        Task task = createRandomEpicTask();
+        taskManager.addTask(task);
+
+        taskManager.removeTask(task.getId());
+
+        assertEquals(0, taskManager.getHistory().size());
+    }
+
+    @Test
+    void extraTask() {
+        Task simpleTask1 = createRandomSimpleTask();
+        Task simpleTask2 = createRandomSimpleTask();
+        Task epicTask1 = createRandomEpicTask();
+        Task epicTask2 = createRandomEpicTask();
+        Task subTask1 = createRandomSubTask();
+        Task subTask2 = createRandomSubTask();
+        Task subTask3 = createRandomSubTask();
+
+        taskManager.addTask(simpleTask1);
+        taskManager.addTask(simpleTask2);
+        taskManager.addTask(epicTask1);
+        taskManager.addTask(epicTask2);
+        taskManager.addTask(subTask1);
+        taskManager.addTask(subTask2);
+        taskManager.addTask(subTask3);
+
+        taskManager.addSubTasksToEpic(epicTask1.getId(), subTask1.getId(), subTask2.getId(), subTask3.getId());
+
+        System.out.println("All tasks:");
+        System.out.println(taskManager.printAllTasks());
+
+        System.out.println("History version 1:");
+        System.out.println(taskManager.getHistoryAsString());
+
+        System.out.println("Do operation with first simple task, second epic task, second subtask.");
+        taskManager.findTaskById(simpleTask1.getId());
+        taskManager.findTaskById(epicTask2.getId());
+        taskManager.findTaskById(subTask2.getId());
+        System.out.println("History version 2:");
+        System.out.println(taskManager.getHistoryAsString());
+
+        System.out.println("Remove second simple task.");
+        taskManager.removeTask(simpleTask2.getId());
+        System.out.println("History version 3:");
+        System.out.println(taskManager.getHistoryAsString());
+
+        System.out.println("Remove recursively first epic task.");
+        taskManager.removeRecursiveTask(epicTask1.getId());
+        System.out.println("History version 4:");
+        System.out.println(taskManager.getHistoryAsString());
     }
 
     private EpicTask createRandomEpicTask() {

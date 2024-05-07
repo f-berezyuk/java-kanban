@@ -2,10 +2,14 @@ package tracker;
 
 import java.util.List;
 
-public interface HistoryManager<T> {
-    List<T> getHistoryObjects();
+import task.Task;
 
-    void addObjectToHistory(T object);
+public interface HistoryManager {
+    String getHistoryAsString();
 
-    String getHistory();
+    void add(Task task);
+
+    List<Task> getHistory();
+
+    void remove(Long id);
 }

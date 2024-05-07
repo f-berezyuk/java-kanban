@@ -17,7 +17,7 @@ public class InMemoryTaskManager implements TaskManager {
     private final HashMap<Long, SimpleTask> simpleTasks;
     private final HashMap<Long, EpicTask> epicTasks;
     private final HashMap<Long, SubTask> subTasks;
-    private final HistoryManager<Task> historyManager;
+    private final HistoryManager historyManager;
 
     public InMemoryTaskManager() {
         idGeneratorCount = 0L;
@@ -43,6 +43,8 @@ public class InMemoryTaskManager implements TaskManager {
             case TASK -> simpleTasks.put(task.getId(), (SimpleTask) task);
             case EPIC -> epicTasks.put(task.getId(), (EpicTask) task);
         }
+
+        historyManager.add(task);
 
         return task.getId();
     }
@@ -84,7 +86,7 @@ public class InMemoryTaskManager implements TaskManager {
             copy = new SubTask((SubTask) result);
         }
         if (result != null) {
-            historyManager.addObjectToHistory(copy);
+            historyManager.add(copy);
         }
         return result;
     }
@@ -217,6 +219,8 @@ public class InMemoryTaskManager implements TaskManager {
             default -> {
             }
         }
+
+        historyManager.remove(id);
     }
 
     @Override
@@ -226,6 +230,7 @@ public class InMemoryTaskManager implements TaskManager {
             case TASK -> simpleTasks.remove(id);
             case EPIC -> {
                 ((EpicTask) task).getSubTasksIds().forEach(subTasks::remove);
+                ((EpicTask) task).getSubTasksIds().forEach(historyManager::remove);
                 epicTasks.remove(id);
             }
             case SUB -> {
@@ -236,6 +241,8 @@ public class InMemoryTaskManager implements TaskManager {
             default -> {
             }
         }
+
+        historyManager.remove(id);
     }
 
     @Override
@@ -263,13 +270,13 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public List<? extends Task> getTaskHistory() {
-        return historyManager.getHistoryObjects();
+    public List<Task> getHistory() {
+        return historyManager.getHistory();
     }
 
     @Override
-    public String getHistory() {
-        return historyManager.getHistory();
+    public String getHistoryAsString() {
+        return historyManager.getHistoryAsString();
     }
 
     @Override
