@@ -1,0 +1,7 @@
+0,TASK,Task 1,NEW,Task for tests
+1,TASK,Updated task.,NEW,Updated description.
+2,EPIC,EpicTask 1,DONE,EpicTask for tests
+5,EPIC,EpicTask 2,NEW,EpicTask for tests
+3,SUB,SubTask 1 for EpicTask 1,DONE,SubTask for tests,2
+4,SUB,SubTask 2 for EpicTask 1,DONE,SubTask for tests,2
+6,SUB,SubTask 3 for EpicTask 2,NEW,SubTask for tests,5

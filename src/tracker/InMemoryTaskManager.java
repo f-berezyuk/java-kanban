@@ -70,6 +70,46 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
+    public Task fromString(String value) throws NumberFormatException {
+        String[] split = value.split(Task.delimiter);
+        if (split.length < 5) {
+            throw new IllegalArgumentException("Unexpected value to parse. Value: [" + value + "].");
+        }
+        Long id = Long.valueOf(split[0]);
+        TaskType type = TaskType.valueOf(split[1]);
+        String name = split[2];
+        EStatus status = EStatus.valueOf(split[3]);
+        String description = split[4];
+        Task task = new SimpleTask(name, description);
+        task.setId(id);
+        task.setStatus(status);
+        switch (type) {
+            case TASK -> {
+                return task;
+            }
+            case EPIC -> {
+                return new EpicTask(task);
+            }
+            case SUB -> {
+                SubTask subTask = new SubTask(task);
+                if (split.length == 6) {
+                    try {
+                        Long parentId = Long.valueOf(split[5]);
+                        if (epicTasks.containsKey(parentId)) {
+                            subTask.setParent(parentId);
+                            epicTasks.get(parentId).addSubTask(subTask.getId());
+                        }
+                    } catch (NumberFormatException ignored) {
+                    }
+
+                }
+                return subTask;
+            }
+            default -> throw new IllegalArgumentException("Unknown task type: [" + type + "]");
+        }
+    }
+
+    @Override
     public Task findTaskById(Long id) {
         Task result = null;
         Task copy = null;
@@ -79,11 +119,11 @@ public class InMemoryTaskManager implements TaskManager {
         }
         if (epicTasks.containsKey(id)) {
             result = epicTasks.get(id);
-            copy = new EpicTask((EpicTask) result);
+            copy = new EpicTask(result);
         }
         if (subTasks.containsKey(id)) {
             result = subTasks.get(id);
-            copy = new SubTask((SubTask) result);
+            copy = new SubTask(result);
         }
         if (result != null) {
             historyManager.add(copy);
@@ -165,8 +205,9 @@ public class InMemoryTaskManager implements TaskManager {
             case TASK -> result = simpleTasks.replace(task.getId(), (SimpleTask) task);
             case EPIC -> result = epicTasks.replace(task.getId(), (EpicTask) task);
         }
-        if (result == null)
+        if (result == null) {
             throw new IllegalArgumentException("Task with id: [" + task.getId() + "] does not exist.");
+        }
     }
 
     @Override
@@ -250,6 +291,7 @@ public class InMemoryTaskManager implements TaskManager {
         simpleTasks.clear();
         epicTasks.clear();
         subTasks.clear();
+        historyManager.clear();
     }
 
     @Override
@@ -292,5 +334,10 @@ public class InMemoryTaskManager implements TaskManager {
         }
 
         return null;
+    }
+
+    @Override
+    public void close() {
+
     }
 }

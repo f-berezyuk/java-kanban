@@ -9,7 +9,7 @@ import task.SubTask;
 import task.Task;
 import task.TaskType;
 
-public interface TaskManager {
+public interface TaskManager extends AutoCloseable {
     // Create
     Long addTask(Task task);
 
@@ -51,4 +51,6 @@ public interface TaskManager {
     List<SubTask> findTasksByParentId(Long parentId);
 
     void addSubTasksToEpic(Long eid, Long... sids);
+
+    Task fromString(String value);
 }

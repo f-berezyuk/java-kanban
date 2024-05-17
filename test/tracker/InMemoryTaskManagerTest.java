@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Random;
 import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.AfterEach;
@@ -21,10 +20,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.fail;
+import static tracker.TaskTestUtilities.assertListEqualsNoOrder;
+import static tracker.TaskTestUtilities.createRandomEpicTask;
+import static tracker.TaskTestUtilities.createRandomSimpleTask;
+import static tracker.TaskTestUtilities.createRandomSubTask;
+import static tracker.TaskTestUtilities.random;
 
 class InMemoryTaskManagerTest {
-    private final Random random = new Random();
     TaskManager taskManager;
 
     @BeforeEach
@@ -128,6 +130,9 @@ class InMemoryTaskManagerTest {
         assertListEqualsNoOrder(tasks, taskManager.getAllTasks());
     }
 
+    /**
+     * @noinspection unchecked
+     */
     @Test
     void shouldGetAllTasksByType() {
         List<SimpleTask> simpleTasks = new ArrayList<>();
@@ -349,32 +354,4 @@ class InMemoryTaskManagerTest {
         System.out.println(taskManager.getHistoryAsString());
     }
 
-    private EpicTask createRandomEpicTask() {
-        return new EpicTask("Name " + random.nextInt(), "Description " + random.nextDouble());
-    }
-
-    private SubTask createRandomSubTask() {
-        return new SubTask("Name " + random.nextInt(), "Description " + random.nextDouble());
-    }
-
-    private SimpleTask createRandomSimpleTask() {
-        return new SimpleTask("Name " + random.nextInt(), "Description " + random.nextDouble());
-    }
-
-    private <T> void assertListEqualsNoOrder(List<T> expected, List<T> actual) {
-        assertEquals(expected.size(), actual.size());
-
-        HashSet<T> hashSet = new HashSet<>(expected);
-        actual.forEach(hashSet::remove);
-        if (!hashSet.isEmpty()) {
-            for (T t : hashSet) {
-                System.out.println("t = " + t);
-            }
-            System.out.println("Expected contains " + hashSet.size() + " values that not matched.");
-            for (T t : hashSet) {
-                System.out.println("Value = " + t);
-            }
-            fail();
-        }
-    }
 }

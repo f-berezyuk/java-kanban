@@ -11,9 +11,11 @@ public class EpicTask extends Task {
         super(name, description);
     }
 
-    public EpicTask(EpicTask result) {
-        super(result);
-        this.subTasksIds = result.subTasksIds;
+    public EpicTask(Task clone) {
+        super(clone);
+        if (clone instanceof EpicTask) {
+            this.subTasksIds = ((EpicTask) clone).subTasksIds;
+        }
     }
 
     @Override
@@ -40,11 +42,5 @@ public class EpicTask extends Task {
 
     public void removeSubTask(Long id) {
         this.subTasksIds.remove(id);
-    }
-
-    @Override
-    public String toString() {
-        Long[] subTasksIds = getSubTasksIds().toArray(Long[]::new);
-        return super.toString() + " SubTasks: " + Arrays.toString(subTasksIds);
     }
 }

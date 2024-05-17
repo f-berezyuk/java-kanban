@@ -3,6 +3,7 @@ package task;
 import java.util.Objects;
 
 public abstract class Task {
+    public static String delimiter = ",";
     protected Long id;
     protected String name;
     protected String description;
@@ -20,13 +21,13 @@ public abstract class Task {
         this.description = description;
     }
 
+    /** @noinspection CopyConstructorMissesField*/
     public Task(Task clone) {
         this();
         id = clone.id;
         name = clone.name;
         description = clone.description;
         status = clone.status;
-        type = clone.type;
     }
 
     protected abstract void setType();
@@ -75,8 +76,8 @@ public abstract class Task {
 
     @Override
     public String toString() {
-        // [TYPE-123/NEW] Name: Description.
-        return "[" + type + "-" + id + "/" + status + "] " + name + ": " + description;
+        // 1,TASK,Task1,NEW,Description task1,
+        return String.join(delimiter, id.toString(), type.toString(), name, status.toString(), description);
     }
 
     @Override

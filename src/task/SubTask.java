@@ -7,9 +7,11 @@ public class SubTask extends Task {
         super(name, description);
     }
 
-    public SubTask(SubTask result) {
-        super(result);
-        this.parent = result.parent;
+    public SubTask(Task clone) {
+        super(clone);
+        if (clone instanceof SubTask) {
+            this.parent = ((SubTask) clone).parent;
+        }
     }
 
     @Override
@@ -37,6 +39,6 @@ public class SubTask extends Task {
     @Override
     public String toString() {
         String parentId = parent != null ? String.valueOf(parent) : "null";
-        return super.toString() + " Parent: " + parentId;
+        return super.toString() + Task.delimiter + parentId;
     }
 }
