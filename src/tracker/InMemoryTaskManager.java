@@ -72,10 +72,10 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public Task fromString(String value) throws NumberFormatException {
-        String[] split = value.split(Task.delimiter);
+    public Task fromString(String[] split) throws NumberFormatException {
         if (split.length < 5) {
-            throw new IllegalArgumentException("Unexpected value to parse. Value: [" + value + "].");
+            throw new IllegalArgumentException("Unexpected value to parse. Value: " +
+                    "[" + String.join(", ", split) + "].");
         }
         Long id = Long.valueOf(split[0]);
         TaskType type = TaskType.valueOf(split[1]);
@@ -103,7 +103,6 @@ public class InMemoryTaskManager implements TaskManager {
                         }
                     } catch (NumberFormatException ignored) {
                     }
-
                 }
                 return subTask;
             }

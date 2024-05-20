@@ -43,4 +43,10 @@ public class EpicTask extends Task {
     public void removeSubTask(Long id) {
         this.subTasksIds.remove(id);
     }
+
+    @Override
+    public String toString() {
+        Long[] subTasksIds = getSubTasksIds().toArray(Long[]::new);
+        return super.toString() + " SubTasks: " + Arrays.toString(subTasksIds);
+    }
 }

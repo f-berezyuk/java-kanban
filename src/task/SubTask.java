@@ -39,6 +39,7 @@ public class SubTask extends Task {
     @Override
     public String toString() {
         String parentId = parent != null ? String.valueOf(parent) : "null";
-        return super.toString() + Task.delimiter + parentId;
+        //return super.toString() + Task.delimiter + parentId;
+        return super.toString() + " Parent: " + parentId;
     }
 }

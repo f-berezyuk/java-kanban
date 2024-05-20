@@ -30,8 +30,8 @@ class FileBackedTaskManagerTest {
 
             try (TaskManager manager = Managers.getFileBasedTaskManager(testFile)) {
                 assertEquals(randomEpicTask, manager.findTaskById(randomEpicTask.getId()));
-            } catch (Exception ignored) {
-                fail();
+            } catch (Exception e) {
+                fail(e.getMessage());
             }
         } finally {
             Files.deleteIfExists(path);
@@ -61,8 +61,8 @@ class FileBackedTaskManagerTest {
             try (TaskManager manager = Managers.getFileBasedTaskManager(testFile)) {
                 System.out.println(manager.getHistoryAsString());
                 assertIterableEquals(orderedTasks, manager.getHistory());
-            } catch (Exception ignored) {
-                fail();
+            } catch (Exception e) {
+                fail(e.getMessage());
             }
         } finally {
             Files.deleteIfExists(path);
