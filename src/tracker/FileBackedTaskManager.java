@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 import task.Task;
 
@@ -35,7 +36,8 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements AutoCl
 
     public void save() {
         try (FileWriter fw = new FileWriter(file, StandardCharsets.UTF_8, false)) {
-            for (Task task : getAllTasks()) {
+            List<Task> tasksInHistoryOrder = getHistory();
+            for (Task task : tasksInHistoryOrder) {
                 fw.write(task.toString() + '\n');
             }
         } catch (IOException e) {

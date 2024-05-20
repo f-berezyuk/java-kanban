@@ -7,6 +7,7 @@ import java.util.Random;
 import task.EpicTask;
 import task.SimpleTask;
 import task.SubTask;
+import task.Task;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -24,6 +25,11 @@ public class TaskTestUtilities {
 
     public static SimpleTask createRandomSimpleTask() {
         return new SimpleTask("Name " + random.nextInt(), "Description " + random.nextDouble());
+    }
+
+    public static Task withId(Task task, long id) {
+        task.setId(id);
+        return task;
     }
 
     public static <T> void assertListEqualsNoOrder(List<T> expected, List<T> actual) {

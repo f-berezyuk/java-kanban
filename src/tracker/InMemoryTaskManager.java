@@ -33,6 +33,8 @@ public class InMemoryTaskManager implements TaskManager {
             task.setId(idGeneratorCount++);
         } else if (findTaskById(task.getId()) != null) {
             throw new IllegalArgumentException("Attempt to rewrite existed task.");
+        } else if (idGeneratorCount <= task.getId()) {
+            idGeneratorCount = task.getId() + 1;
         }
 
         switch (task.getType()) {
