@@ -1,9 +1,13 @@
 package tracker;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 import task.EStatus;
 import task.EpicTask;
@@ -40,7 +44,12 @@ public class InMemoryTaskManager implements TaskManager {
         switch (task.getType()) {
             case SUB -> {
                 subTasks.put(task.getId(), (SubTask) task);
-                checkEpicStatus(((SubTask) task).getParent());
+                Optional.ofNullable(((SubTask) task).getParent())
+                        .ifPresent(parent -> {
+                            checkEpicStatus(parent);
+                            checkDuration(parent);
+                        });
+
             }
             case TASK -> simpleTasks.put(task.getId(), (SimpleTask) task);
             case EPIC -> epicTasks.put(task.getId(), (EpicTask) task);
@@ -50,6 +59,7 @@ public class InMemoryTaskManager implements TaskManager {
 
         return task.getId();
     }
+
 
     @Override
     public void addSubTasksToEpic(Long eid, Long... sids) {
@@ -72,20 +82,15 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public Task fromString(String[] split) throws NumberFormatException {
-        if (split.length < 5) {
-            throw new IllegalArgumentException("Unexpected value to parse. Value: " +
-                    "[" + String.join(", ", split) + "].");
+    public Task fromDto(TaskDTO dto) throws NumberFormatException {
+        Task task = new SimpleTask(dto.name, dto.description);
+        task.setId(dto.id);
+        task.setStatus(dto.status);
+        if(dto.startTime != null) {
+            task.setStartTime(dto.startTime);
+            task.setDuration(dto.duration);
         }
-        Long id = Long.valueOf(split[0]);
-        TaskType type = TaskType.valueOf(split[1]);
-        String name = split[2];
-        EStatus status = EStatus.valueOf(split[3]);
-        String description = split[4];
-        Task task = new SimpleTask(name, description);
-        task.setId(id);
-        task.setStatus(status);
-        switch (type) {
+        switch (dto.type) {
             case TASK -> {
                 return task;
             }
@@ -94,19 +99,15 @@ public class InMemoryTaskManager implements TaskManager {
             }
             case SUB -> {
                 SubTask subTask = new SubTask(task);
-                if (split.length == 6) {
-                    try {
-                        Long parentId = Long.valueOf(split[5]);
-                        if (epicTasks.containsKey(parentId)) {
-                            subTask.setParent(parentId);
-                            epicTasks.get(parentId).addSubTask(subTask.getId());
-                        }
-                    } catch (NumberFormatException ignored) {
-                    }
+                Long parentId = dto.parent;
+                if (epicTasks.containsKey(parentId)) {
+                    subTask.setParent(parentId);
+                    epicTasks.get(parentId).addSubTask(subTask.getId());
+                    checkDuration(parentId);
                 }
                 return subTask;
             }
-            default -> throw new IllegalArgumentException("Unknown task type: [" + type + "]");
+            default -> throw new IllegalArgumentException("Unknown task type: [" + dto.type + "]");
         }
     }
 
@@ -225,6 +226,39 @@ public class InMemoryTaskManager implements TaskManager {
                 }
             }
         }
+    }
+
+    private void checkDuration(Long parent) {
+        Optional.ofNullable(epicTasks.get(parent))
+                .ifPresent(epic ->
+                        {
+                            List<SubTask> subs = epic.getSubTasksIds()
+                                    .stream()
+                                    .map(subTasks::get)
+                                    .filter(Objects::nonNull)
+                                    .toList();
+
+                            epic.setStartTime(subs
+                                    .stream()
+                                    .filter(subTask -> subTask.getStartTime() != null)
+                                    .min(Comparator.comparing(Task::getStartTime))
+                                    .orElseThrow(RuntimeException::new)
+                                    .getStartTime());
+                            epic.setEndTime(subs
+                                    .stream()
+                                    .filter(subTask -> subTask.getEndTime() != null)
+                                    .max(Comparator.comparing(Task::getEndTime))
+                                    .orElseThrow(RuntimeException::new)
+                                    .getEndTime());
+                            epic.setDuration(subs
+                                    .stream()
+                                    .map(Task::getDuration)
+                                    .filter(Objects::nonNull)
+                                    .reduce(Duration::plus)
+                                    .orElseThrow(RuntimeException::new));
+
+                        }
+                );
     }
 
     private void checkEpicStatus(Long id) {

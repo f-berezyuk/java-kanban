@@ -1,11 +1,14 @@
 package task;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 
 public class EpicTask extends Task {
     private HashSet<Long> subTasksIds = new HashSet<>();
+
+    private LocalDateTime endTime;
 
     public EpicTask(String name, String description) {
         super(name, description);
@@ -16,6 +19,15 @@ public class EpicTask extends Task {
         if (clone instanceof EpicTask) {
             this.subTasksIds = ((EpicTask) clone).subTasksIds;
         }
+    }
+
+    @Override
+    public LocalDateTime getEndTime() {
+        return endTime;
+    }
+
+    public void setEndTime(LocalDateTime endTime) {
+        this.endTime = endTime;
     }
 
     @Override

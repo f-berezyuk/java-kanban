@@ -1,5 +1,7 @@
 package tracker;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
@@ -17,6 +19,12 @@ public class TaskTestUtilities {
 
     public static EpicTask createRandomEpicTask() {
         return new EpicTask("Name " + random.nextInt(), "Description " + random.nextDouble());
+    }
+
+    public static Task addTime(Task task) {
+        task.setStartTime(LocalDateTime.now());
+        task.setDuration(Duration.ofMinutes(random.nextInt()));
+        return task;
     }
 
     public static SubTask createRandomSubTask() {
