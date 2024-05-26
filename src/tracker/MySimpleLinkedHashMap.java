@@ -94,6 +94,12 @@ public class MySimpleLinkedHashMap {
         return tasks;
     }
 
+    public void clear() {
+        taskIdToNode.clear();
+        head = null;
+        tail = null;
+    }
+
     private static class Node {
         public Task value;
         public Node next;

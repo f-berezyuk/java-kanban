@@ -11,9 +11,11 @@ public class EpicTask extends Task {
         super(name, description);
     }
 
-    public EpicTask(EpicTask result) {
-        super(result);
-        this.subTasksIds = result.subTasksIds;
+    public EpicTask(Task clone) {
+        super(clone);
+        if (clone instanceof EpicTask) {
+            this.subTasksIds = ((EpicTask) clone).subTasksIds;
+        }
     }
 
     @Override

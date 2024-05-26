@@ -20,13 +20,15 @@ public abstract class Task {
         this.description = description;
     }
 
+    /**
+     * @noinspection CopyConstructorMissesField
+     */
     public Task(Task clone) {
         this();
         id = clone.id;
         name = clone.name;
         description = clone.description;
         status = clone.status;
-        type = clone.type;
     }
 
     protected abstract void setType();
@@ -75,7 +77,8 @@ public abstract class Task {
 
     @Override
     public String toString() {
-        // [TYPE-123/NEW] Name: Description.
+        // 1,TASK,Task1,NEW,Description task1,
+        // return String.join(delimiter, id.toString(), type.toString(), name, status.toString(), description);
         return "[" + type + "-" + id + "/" + status + "] " + name + ": " + description;
     }
 

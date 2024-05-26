@@ -40,5 +40,10 @@ public class InMemoryHistoryManager implements HistoryManager {
     public void remove(Long id) {
         simpleLinkedHashMap.removeById(id);
     }
+
+    @Override
+    public void clear() {
+        simpleLinkedHashMap.clear();
+    }
 }
 
