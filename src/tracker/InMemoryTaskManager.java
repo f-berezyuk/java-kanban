@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import task.EStatus;
 import task.EpicTask;
@@ -47,6 +48,10 @@ public class InMemoryTaskManager implements TaskManager {
             idGeneratorCount = task.getId() + 1;
         }
 
+        if (!isValid(task)) {
+            throw new IllegalArgumentException("Tasks intersection.");
+        }
+
         switch (task.getType()) {
             case SUB -> {
                 subTasks.put(task.getId(), (SubTask) task);
@@ -69,19 +74,27 @@ public class InMemoryTaskManager implements TaskManager {
         return task.getId();
     }
 
+    private boolean isValid(Task task) {
+        return
+                !(tasksOrderByStartTime.stream()
+                        .anyMatch(t -> t.getStartTime().isBefore(task.getStartTime())
+                                && t.getEndTime().isAfter(task.getStartTime()))
+                        || tasksOrderByStartTime.stream()
+                        .anyMatch(t -> task.getStartTime().isBefore(t.getStartTime())
+                                && task.getEndTime().isAfter(t.getStartTime())));
+    }
+
 
     @Override
     public void addSubTasksToEpic(Long eid, Long... sids) {
         if (epicTasks.containsKey(eid)) {
             EpicTask task = epicTasks.get(eid);
-            StringBuilder sb = new StringBuilder();
-            for (Long sid : sids) {
-                if (!subTasks.containsKey(sid)) {
-                    sb.append("Did not find sub task with id: [").append(sid).append("]\n");
-                }
-            }
+            String sb = Arrays.stream(sids)
+                    .filter(sid -> !subTasks.containsKey(sid))
+                    .map(sid -> "Did not find sub task with id: [" + sid + "]\n")
+                    .collect(Collectors.joining());
             if (sb.length() > 0) {
-                throw new IllegalArgumentException(sb.toString());
+                throw new IllegalArgumentException(sb);
             }
             task.addSubTasks(sids);
             Arrays.stream(sids).forEach(sid -> subTasks.get(sid).setParent(eid));
@@ -227,20 +240,20 @@ public class InMemoryTaskManager implements TaskManager {
     public String printAllTasks() {
         StringBuilder sb = new StringBuilder();
 
-        for (SimpleTask task : simpleTasks.values()) {
+        simpleTasks.values().forEach(task -> {
             sb.append(task.toString());
             sb.append('\n');
-        }
+        });
 
-        for (EpicTask task : epicTasks.values()) {
+        epicTasks.values().forEach(task -> {
             sb.append(task.toString());
             sb.append('\n');
-        }
+        });
 
-        for (SubTask task : subTasks.values()) {
+        subTasks.values().forEach(task -> {
             sb.append(task.toString());
             sb.append('\n');
-        }
+        });
 
         return sb.toString();
     }
@@ -274,16 +287,24 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void updateTask(Task task) {
         Task result = null;
+        if (!isValid(task)) {
+            throw new IllegalArgumentException("Tasks intersection.");
+        }
         switch (task.getType()) {
             case SUB -> {
                 result = subTasks.replace(task.getId(), (SubTask) task);
                 checkEpicStatus(((SubTask) task).getParent());
+                checkDuration(((SubTask) task).getParent());
             }
             case TASK -> result = simpleTasks.replace(task.getId(), (SimpleTask) task);
             case EPIC -> result = epicTasks.replace(task.getId(), (EpicTask) task);
         }
         if (result == null) {
             throw new IllegalArgumentException("Task with id: [" + task.getId() + "] does not exist.");
+        } else {
+            tasksOrderByStartTime.removeIf(t -> Objects.equals(t.getId(), task.getId()));
+            tasksOrderByStartTime.add(task);
+            updateCache();
         }
     }
 
@@ -369,6 +390,8 @@ public class InMemoryTaskManager implements TaskManager {
             }
         }
 
+        tasksOrderByStartTime.removeIf(t -> Objects.equals(t.getId(), id));
+        updateCache();
         historyManager.remove(id);
     }
 
@@ -392,6 +415,8 @@ public class InMemoryTaskManager implements TaskManager {
         }
 
         historyManager.remove(id);
+        tasksOrderByStartTime.removeIf(t -> Objects.equals(t.getId(), id));
+        updateCache();
     }
 
     @Override
@@ -400,6 +425,7 @@ public class InMemoryTaskManager implements TaskManager {
         epicTasks.clear();
         subTasks.clear();
         historyManager.clear();
+        tasksOrderByStartTime.clear();
     }
 
     @Override
@@ -417,6 +443,7 @@ public class InMemoryTaskManager implements TaskManager {
             default -> {
             }
         }
+        checkTreeSetCache();
     }
 
     @Override
