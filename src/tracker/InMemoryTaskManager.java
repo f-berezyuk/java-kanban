@@ -303,7 +303,9 @@ public class InMemoryTaskManager implements TaskManager {
             throw new IllegalArgumentException("Task with id: [" + task.getId() + "] does not exist.");
         } else {
             tasksOrderByStartTime.removeIf(t -> Objects.equals(t.getId(), task.getId()));
-            addTaskToTreeSet(task);
+            if (task.getStartTime() != null) {
+                addTaskToTreeSet(task);
+            }
         }
     }
 
