@@ -4,7 +4,8 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
-import java.util.Optional;
+
+import tracker.TrackerUtilities;
 
 public abstract class Task {
     protected Long id;
@@ -35,14 +36,6 @@ public abstract class Task {
         name = clone.name;
         description = clone.description;
         status = clone.status;
-    }
-
-    public LocalDateTime getStartTime() {
-        return startTime;
-    }
-
-    public void setStartTime(LocalDateTime time) {
-        this.startTime = time;
     }
 
     protected abstract void setType();
@@ -86,6 +79,12 @@ public abstract class Task {
         result = 37 * result + description.hashCode();
         result = 37 * result + status.hashCode();
         result = 37 * result + type.hashCode();
+        if (startTime != null) {
+            result = 37 * result + startTime.hashCode();
+        }
+        if (duration != null) {
+            result = 37 * result + duration.hashCode();
+        }
         return result;
     }
 
@@ -94,32 +93,49 @@ public abstract class Task {
         // 1,TASK,Task1,NEW,Description task1,
         // return String.join(delimiter, id.toString(), type.toString(), name, status.toString(), description);
         String s = "[" + type + "-" + id + "/" + status + "] " + name + ": " + description;
-        if(startTime != null && duration != null) {
+        if (startTime != null && duration != null) {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm dd.MM.yyyy");
             s = s + String.format(". Start: [%s]. Duration: [%s]. End: [%s].",
-                            startTime.format(formatter),
-                            duration,
-                            getEndTime().format(formatter));
+                    startTime.format(formatter),
+                    duration,
+                    getEndTime().format(formatter));
         }
         return s;
     }
 
     @Override
     public boolean equals(Object obj) {
-        return (this == obj) || ((obj != null && this.getClass().equals(obj.getClass()))
-                && Objects.equals(id, ((Task) obj).id)
-                && Objects.equals(name, ((Task) obj).name)
-                && Objects.equals(description, ((Task) obj).description)
-                && status == ((Task) obj).status);
+        if ((this == obj)) {
+            return true;
+        }
+        if ((obj == null || !this.getClass().equals(obj.getClass()))) {
+            return false;
+        }
+        Task other = (Task) obj;
+        return Objects.equals(id, other.id)
+                && Objects.equals(name, other.name)
+                && Objects.equals(description, other.description)
+                && status == other.status
+                && Objects.equals(startTime, other.startTime)
+                && Objects.equals(duration, other.duration);
     }
 
     public TaskType getType() {
         return this.type;
     }
-    
+
+    public LocalDateTime getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(LocalDateTime time) {
+        this.startTime = LocalDateTime.parse(time.format(TrackerUtilities.DATE_TIME_FORMAT),
+                TrackerUtilities.DATE_TIME_FORMAT);
+    }
+
     public LocalDateTime getEndTime() {
-        if (startTime != null) {
-            return startTime.plus(Optional.ofNullable(duration).orElse(Duration.ZERO));
+        if (startTime != null && duration != null) {
+            return startTime.plus(duration);
         }
         return null;
     }

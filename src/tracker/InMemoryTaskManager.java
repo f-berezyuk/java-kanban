@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.TreeSet;
 
 import task.EStatus;
 import task.EpicTask;
@@ -21,7 +22,10 @@ public class InMemoryTaskManager implements TaskManager {
     private final HashMap<Long, SimpleTask> simpleTasks;
     private final HashMap<Long, EpicTask> epicTasks;
     private final HashMap<Long, SubTask> subTasks;
+
+    private final TreeSet<Task> tasksOrderByStartTime;
     private final HistoryManager historyManager;
+    private Integer cashHash;
 
     public InMemoryTaskManager() {
         idGeneratorCount = 0L;
@@ -29,6 +33,8 @@ public class InMemoryTaskManager implements TaskManager {
         subTasks = new HashMap<>();
         simpleTasks = new HashMap<>();
         historyManager = Managers.getTasksHistoryManager();
+        tasksOrderByStartTime = new TreeSet<>(Comparator.comparing(Task::getStartTime));
+        cashHash = tasksOrderByStartTime.hashCode();
     }
 
     @Override
@@ -56,6 +62,9 @@ public class InMemoryTaskManager implements TaskManager {
         }
 
         historyManager.add(task);
+        if (task.getStartTime() != null) {
+            addTaskToTreeSet(task);
+        }
 
         return task.getId();
     }
@@ -76,6 +85,8 @@ public class InMemoryTaskManager implements TaskManager {
             }
             task.addSubTasks(sids);
             Arrays.stream(sids).forEach(sid -> subTasks.get(sid).setParent(eid));
+            checkDuration(task.getId());
+            checkEpicStatus(task.getId());
         } else {
             throw new IllegalArgumentException("Did not find epic task with id: [" + eid + "]");
         }
@@ -86,7 +97,7 @@ public class InMemoryTaskManager implements TaskManager {
         Task task = new SimpleTask(dto.name, dto.description);
         task.setId(dto.id);
         task.setStatus(dto.status);
-        if(dto.startTime != null) {
+        if (dto.startTime != null) {
             task.setStartTime(dto.startTime);
             task.setDuration(dto.duration);
         }
@@ -109,6 +120,70 @@ public class InMemoryTaskManager implements TaskManager {
             }
             default -> throw new IllegalArgumentException("Unknown task type: [" + dto.type + "]");
         }
+    }
+
+    @Override
+    public List<Task> getPrioritizedTasks() {
+        checkTreeSetCache();
+
+        return tasksOrderByStartTime.stream().toList();
+    }
+
+    private void addTaskToTreeSet(Task task) {
+        if (cashHash != tasksOrderByStartTime.hashCode()) {
+            System.out.println("tasks were changed. Update tree.");
+            checkTreeSetCache();
+        } else {
+            tasksOrderByStartTime.add(task);
+            updateCache();
+        }
+    }
+
+    private void checkTreeSetCache() {
+        List<Task> allTasksWithStartTime = getAllTasks().stream().filter(t -> t.getStartTime() != null).toList();
+        Integer treeHash = tasksOrderByStartTime
+                .stream()
+                .map(Task::hashCode)
+                .reduce(Integer::sum)
+                .orElse(Integer.MIN_VALUE);
+
+        if (!treeHash.equals(cashHash)) {
+            invalidateTreeSetCache(allTasksWithStartTime);
+        } else {
+            Integer allTaskHash = allTasksWithStartTime
+                    .stream()
+                    .map(Task::hashCode)
+                    .reduce(Integer::sum)
+                    .orElse(Integer.MIN_VALUE);
+
+            if (!treeHash.equals(allTaskHash)) {
+                updateTreeSet(allTasksWithStartTime);
+            }
+        }
+    }
+
+    private void updateTreeSet(List<Task> allTasksWithStartTime) {
+        System.out.println("Update tree set.");
+        allTasksWithStartTime
+                .stream()
+                .filter(t -> !tasksOrderByStartTime.contains(t))
+                .forEach(tasksOrderByStartTime::add);
+        updateCache();
+    }
+
+    private void invalidateTreeSetCache(List<Task> allTasksWithStartTime) {
+        System.out.println("Cache is invalid. Remake.");
+        tasksOrderByStartTime.clear();
+        tasksOrderByStartTime.addAll(allTasksWithStartTime);
+        updateCache();
+    }
+
+    private void updateCache() {
+        cashHash = tasksOrderByStartTime
+                .stream()
+                .map(Task::hashCode)
+                .reduce(Integer::sum)
+                .orElse(Integer.MIN_VALUE);
     }
 
     @Override
@@ -238,24 +313,22 @@ public class InMemoryTaskManager implements TaskManager {
                                     .filter(Objects::nonNull)
                                     .toList();
 
-                            epic.setStartTime(subs
+                            subs
                                     .stream()
                                     .filter(subTask -> subTask.getStartTime() != null)
                                     .min(Comparator.comparing(Task::getStartTime))
-                                    .orElseThrow(RuntimeException::new)
-                                    .getStartTime());
-                            epic.setEndTime(subs
-                                    .stream()
-                                    .filter(subTask -> subTask.getEndTime() != null)
-                                    .max(Comparator.comparing(Task::getEndTime))
-                                    .orElseThrow(RuntimeException::new)
-                                    .getEndTime());
-                            epic.setDuration(subs
+                                    .ifPresent(s -> epic.setStartTime(s.getStartTime()));
+                            subs
                                     .stream()
                                     .map(Task::getDuration)
                                     .filter(Objects::nonNull)
                                     .reduce(Duration::plus)
-                                    .orElseThrow(RuntimeException::new));
+                                    .ifPresent(epic::setDuration);
+                            subs
+                                    .stream()
+                                    .filter(subTask -> subTask.getEndTime() != null)
+                                    .max(Comparator.comparing(Task::getEndTime))
+                                    .ifPresent(s -> epic.setEndTime(s.getEndTime()));
 
                         }
                 );

@@ -12,7 +12,7 @@ import task.Task;
 import task.TaskType;
 
 public class TrackerUtilities {
-    private static final DateTimeFormatter DATE_TIME_FORMAT = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
+    public static final DateTimeFormatter DATE_TIME_FORMAT = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
     public static String csvDelimiter = ",";
 
     public static TaskDTO fromCsvToTaskDTO(String value) throws NumberFormatException {
@@ -46,7 +46,7 @@ public class TrackerUtilities {
             }
             String substring = value.substring(from, split);
             values.add(substring);
-            from = split+1;
+            from = split + 1;
         }
         return values.toArray(new String[0]);
     }

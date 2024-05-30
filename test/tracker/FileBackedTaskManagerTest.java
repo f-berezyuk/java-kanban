@@ -91,7 +91,6 @@ class FileBackedTaskManagerTest {
             }
 
             try (TaskManager manager = Managers.getFileBasedTaskManager(testFile)) {
-                System.out.println(manager.getHistoryAsString());
                 assertIterableEquals(orderedTasks, manager.getHistory());
             } catch (Exception e) {
                 fail(e.getMessage(), e);
