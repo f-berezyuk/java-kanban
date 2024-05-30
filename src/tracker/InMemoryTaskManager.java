@@ -326,27 +326,22 @@ public class InMemoryTaskManager implements TaskManager {
 
     private void checkDuration(Long parent) {
         Optional.ofNullable(epicTasks.get(parent))
-                .ifPresent(epic ->
-                        {
+                .ifPresent(epic -> {
                             List<SubTask> subs = epic.getSubTasksIds()
                                     .stream()
                                     .map(subTasks::get)
                                     .filter(Objects::nonNull)
                                     .toList();
-
-                            subs
-                                    .stream()
+                            subs.stream()
                                     .filter(subTask -> subTask.getStartTime() != null)
                                     .min(Comparator.comparing(Task::getStartTime))
                                     .ifPresent(s -> epic.setStartTime(s.getStartTime()));
-                            subs
-                                    .stream()
+                            subs.stream()
                                     .map(Task::getDuration)
                                     .filter(Objects::nonNull)
                                     .reduce(Duration::plus)
                                     .ifPresent(epic::setDuration);
-                            subs
-                                    .stream()
+                            subs.stream()
                                     .filter(subTask -> subTask.getEndTime() != null)
                                     .max(Comparator.comparing(Task::getEndTime))
                                     .ifPresent(s -> epic.setEndTime(s.getEndTime()));
