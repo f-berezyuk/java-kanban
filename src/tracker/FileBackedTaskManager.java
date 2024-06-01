@@ -10,8 +10,8 @@ import java.util.List;
 
 import task.Task;
 
-import static tracker.TrackerUtilities.fromCsvToStringArrayFormat;
-import static tracker.TrackerUtilities.fromTaskToCsv;
+import static tracker.TrackerUtilities.fromCsvToTaskDTO;
+import static tracker.TrackerUtilities.fromTaskDtoToCsv;
 
 public class FileBackedTaskManager extends InMemoryTaskManager implements AutoCloseable {
     private final File file;
@@ -26,7 +26,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements AutoCl
         try (FileReader fr = new FileReader(file, StandardCharsets.UTF_8); BufferedReader br = new BufferedReader(fr)) {
             String line = br.readLine();
             while (line != null) {
-                Task task = manager.fromString(fromCsvToStringArrayFormat(line));
+                Task task = manager.fromDto(fromCsvToTaskDTO(line));
                 manager.addTask(task);
                 line = br.readLine();
             }
@@ -41,7 +41,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements AutoCl
         try (FileWriter fw = new FileWriter(file, StandardCharsets.UTF_8, false)) {
             List<Task> tasksInHistoryOrder = getHistory();
             for (Task task : tasksInHistoryOrder) {
-                fw.write(fromTaskToCsv(task) + '\n');
+                fw.write(fromTaskDtoToCsv(task) + '\n');
             }
         } catch (IOException e) {
             throw new ManagerSaveException(e);

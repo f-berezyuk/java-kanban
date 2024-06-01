@@ -52,5 +52,7 @@ public interface TaskManager extends AutoCloseable {
 
     void addSubTasksToEpic(Long eid, Long... sids);
 
-    Task fromString(String[] split);
+    Task fromDto(TaskDTO dto);
+
+    List<Task> getPrioritizedTasks();
 }

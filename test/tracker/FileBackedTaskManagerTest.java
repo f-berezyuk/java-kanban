@@ -13,6 +13,7 @@ import task.Task;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertIterableEquals;
 import static org.junit.jupiter.api.Assertions.fail;
+import static tracker.TaskTestUtilities.addTime;
 import static tracker.TaskTestUtilities.createRandomEpicTask;
 import static tracker.TaskTestUtilities.createRandomSimpleTask;
 import static tracker.TaskTestUtilities.withId;
@@ -31,7 +32,7 @@ class FileBackedTaskManagerTest {
             try (TaskManager manager = Managers.getFileBasedTaskManager(testFile)) {
                 assertEquals(randomEpicTask, manager.findTaskById(randomEpicTask.getId()));
             } catch (Exception e) {
-                fail(e.getMessage());
+                fail(e.getMessage(), e);
             }
         } finally {
             Files.deleteIfExists(path);
@@ -62,7 +63,37 @@ class FileBackedTaskManagerTest {
                 System.out.println(manager.getHistoryAsString());
                 assertIterableEquals(orderedTasks, manager.getHistory());
             } catch (Exception e) {
-                fail(e.getMessage());
+                fail(e.getMessage(), e);
+            }
+        } finally {
+            Files.deleteIfExists(path);
+        }
+    }
+
+    @Test
+    void shouldSaveLoadHistoryWithTime() throws Exception {
+        Path path = Path.of("testFile.csv");
+        try {
+            File testFile = Files.createFile(path).toFile();
+
+            LinkedList<Task> orderedTasks = new LinkedList<>();
+
+            for (int i = 0; i < 10; i++) {
+                orderedTasks.add(withId(addTime(createRandomSimpleTask()), i));
+            }
+            System.out.println(Arrays.toString(orderedTasks.toArray()));
+
+            try (TaskManager manager = Managers.getFileBasedTaskManager(testFile)) {
+                for (Task task : orderedTasks) {
+                    manager.addTask(task);
+                }
+                System.out.println(manager.getHistoryAsString());
+            }
+
+            try (TaskManager manager = Managers.getFileBasedTaskManager(testFile)) {
+                assertIterableEquals(orderedTasks, manager.getHistory());
+            } catch (Exception e) {
+                fail(e.getMessage(), e);
             }
         } finally {
             Files.deleteIfExists(path);
