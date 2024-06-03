@@ -3,6 +3,7 @@ package api.handlers;
 import java.io.IOException;
 
 import api.HandlerUtilities;
+import api.adapters.TaskListTypeToken;
 import com.sun.net.httpserver.HttpExchange;
 import tracker.TaskManager;
 
@@ -13,16 +14,23 @@ public class PrioritizedTaskHandler extends BaseHandler {
 
     @Override
     public void handle(HttpExchange exchange) throws IOException {
-        PrioritizedHandlerEndpoint endpoint = getEndpoint(exchange);
-        if (endpoint == PrioritizedHandlerEndpoint.GET_PRIORITIZED) {
-            handleGetPrioritized(exchange);
-        } else {
-            HandlerUtilities.writeEndpoint404Response(exchange);
+        try {
+            PrioritizedHandlerEndpoint endpoint = getEndpoint(exchange);
+            if (endpoint == PrioritizedHandlerEndpoint.GET_PRIORITIZED) {
+                handleGetPrioritized(exchange);
+            } else {
+                HandlerUtilities.writeEndpoint404Response(exchange);
+            }
+        } catch (IOException e) {
+            HandlerUtilities.write500(exchange, e);
         }
     }
 
-    private void handleGetPrioritized(HttpExchange exchange) {
-
+    private void handleGetPrioritized(HttpExchange exchange) throws IOException {
+        HandlerUtilities.writeResponse(
+                exchange,
+                gson.toJson(manager.getPrioritizedTasks(), new TaskListTypeToken().getType()),
+                200);
     }
 
     private PrioritizedHandlerEndpoint getEndpoint(HttpExchange exchange) {

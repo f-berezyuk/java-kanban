@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+import api.HandlerUtilities;
 import api.adapters.EpicTaskListTypeToken;
 import api.adapters.SubTaskListTypeToken;
 import com.google.gson.JsonSyntaxException;
@@ -29,18 +30,22 @@ public class EpicTaskHandler extends TaskHandler {
 
     @Override
     public void handle(HttpExchange exchange) throws IOException {
-        TaskHandlerEndpoint endpoint = getEndpoint(exchange);
-        if (endpoint == TaskHandlerEndpoint.UNKNOWN) {
-            writeEndpoint404Response(exchange);
-        } else {
-            switch (endpoint) {
+        try {
+            TaskHandlerEndpoint endpoint = getEndpoint(exchange);
+            if (endpoint == TaskHandlerEndpoint.UNKNOWN) {
+                writeEndpoint404Response(exchange);
+            } else {
+                switch (endpoint) {
 
-                case GET_TASK -> handleGetTask(exchange);
-                case POST_TASK -> handlePostTask(exchange);
-                case GET_TASKS -> handleGetTasks(exchange);
-                case DELETE_TASK -> super.handleDeleteTask(exchange);
-                case GET_SUBTASKS -> handleGetSubTasks(exchange);
+                    case GET_TASK -> handleGetTask(exchange);
+                    case POST_TASK -> handlePostTask(exchange);
+                    case GET_TASKS -> handleGetTasks(exchange);
+                    case DELETE_TASK -> super.handleDeleteTask(exchange);
+                    case GET_SUBTASKS -> handleGetSubTasks(exchange);
+                }
             }
+        } catch (IOException e) {
+            HandlerUtilities.write500(exchange, e);
         }
     }
 

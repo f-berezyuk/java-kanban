@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
+import api.HandlerUtilities;
 import api.adapters.SubTaskListTypeToken;
 import com.google.gson.JsonSyntaxException;
 import com.sun.net.httpserver.HttpExchange;
@@ -24,19 +25,25 @@ public class SubTaskHandler extends TaskHandler {
 
     @Override
     public void handle(HttpExchange exchange) throws IOException {
-        TaskHandlerEndpoint endpoint = getEndpoint(exchange);
-        switch (endpoint) {
+        try {
+            TaskHandlerEndpoint endpoint = getEndpoint(exchange);
+            switch (endpoint) {
 
-            case GET_TASK -> handleGetTask(exchange);
-            case POST_TASK -> handlePostTask(exchange);
-            case GET_TASKS -> handleGetTasks(exchange);
-            case DELETE_TASK -> super.handleDeleteTask(exchange);
-            case GET_SUBTASKS,
-                    UNKNOWN -> writeEndpoint404Response(exchange);
+                case GET_TASK -> handleGetTask(exchange);
+                case POST_TASK -> handlePostTask(exchange);
+                case GET_TASKS -> handleGetTasks(exchange);
+                case DELETE_TASK -> super.handleDeleteTask(exchange);
+                case GET_SUBTASKS,
+                        UNKNOWN -> writeEndpoint404Response(exchange);
+            }
+        } catch (IOException e) {
+            HandlerUtilities.write500(exchange, e);
         }
     }
 
-    /** @noinspection unchecked*/
+    /**
+     * @noinspection unchecked
+     */
     private void handleGetTasks(HttpExchange exchange) throws IOException {
         List<SubTask> tasks = (List<SubTask>) manager.getAllTasksByType(TaskType.SUB);
         writeResponse(exchange, gson.toJson(tasks, new SubTaskListTypeToken().getType()), 200);

@@ -63,4 +63,8 @@ public class HandlerUtilities {
                 .registerTypeAdapter(Duration.class, new DurationAdapter())
                 .create();
     }
+
+    public static void write500(HttpExchange exchange, IOException e) throws IOException {
+        writeResponse(exchange, e.getMessage(), 500);
+    }
 }

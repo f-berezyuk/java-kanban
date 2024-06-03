@@ -26,7 +26,6 @@ public class InMemoryTaskManager implements TaskManager {
 
     private final TreeSet<Task> tasksOrderByStartTime;
     private final HistoryManager historyManager;
-    private Integer cashHash;
 
     public InMemoryTaskManager() {
         idGeneratorCount = 0L;
@@ -35,7 +34,6 @@ public class InMemoryTaskManager implements TaskManager {
         simpleTasks = new HashMap<>();
         historyManager = Managers.getTasksHistoryManager();
         tasksOrderByStartTime = new TreeSet<>(Comparator.comparing(Task::getStartTime));
-        cashHash = tasksOrderByStartTime.hashCode();
     }
 
     @Override
@@ -77,8 +75,10 @@ public class InMemoryTaskManager implements TaskManager {
     private boolean isValid(Task task) {
         return
                 !(tasksOrderByStartTime.stream()
+                        .anyMatch(t -> t.getStartTime().isEqual(task.getStartTime()))
+                        || tasksOrderByStartTime.stream()
                         .anyMatch(t -> t.getStartTime().isBefore(task.getStartTime())
-                                && t.getEndTime().isAfter(task.getStartTime()))
+                                && (t.getEndTime().isAfter(task.getStartTime())))
                         || tasksOrderByStartTime.stream()
                         .anyMatch(t -> task.getStartTime().isBefore(t.getStartTime())
                                 && task.getEndTime().isAfter(t.getStartTime())));
@@ -137,66 +137,15 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public List<Task> getPrioritizedTasks() {
-        checkTreeSetCache();
-
         return tasksOrderByStartTime.stream().toList();
     }
 
     private void addTaskToTreeSet(Task task) {
-        if (cashHash != tasksOrderByStartTime.hashCode()) {
+        if (tasksOrderByStartTime.contains(task)) {
             System.out.println("tasks were changed. Update tree.");
-            checkTreeSetCache();
-        } else {
-            tasksOrderByStartTime.add(task);
-            updateCache();
+            tasksOrderByStartTime.remove(task);
         }
-    }
-
-    private void checkTreeSetCache() {
-        List<Task> allTasksWithStartTime = getAllTasks().stream().filter(t -> t.getStartTime() != null).toList();
-        Integer treeHash = tasksOrderByStartTime
-                .stream()
-                .map(Task::hashCode)
-                .reduce(Integer::sum)
-                .orElse(Integer.MIN_VALUE);
-
-        if (!treeHash.equals(cashHash)) {
-            invalidateTreeSetCache(allTasksWithStartTime);
-        } else {
-            Integer allTaskHash = allTasksWithStartTime
-                    .stream()
-                    .map(Task::hashCode)
-                    .reduce(Integer::sum)
-                    .orElse(Integer.MIN_VALUE);
-
-            if (!treeHash.equals(allTaskHash)) {
-                updateTreeSet(allTasksWithStartTime);
-            }
-        }
-    }
-
-    private void updateTreeSet(List<Task> allTasksWithStartTime) {
-        System.out.println("Update tree set.");
-        allTasksWithStartTime
-                .stream()
-                .filter(t -> !tasksOrderByStartTime.contains(t))
-                .forEach(tasksOrderByStartTime::add);
-        updateCache();
-    }
-
-    private void invalidateTreeSetCache(List<Task> allTasksWithStartTime) {
-        System.out.println("Cache is invalid. Remake.");
-        tasksOrderByStartTime.clear();
-        tasksOrderByStartTime.addAll(allTasksWithStartTime);
-        updateCache();
-    }
-
-    private void updateCache() {
-        cashHash = tasksOrderByStartTime
-                .stream()
-                .map(Task::hashCode)
-                .reduce(Integer::sum)
-                .orElse(Integer.MIN_VALUE);
+        tasksOrderByStartTime.add(task);
     }
 
     @Override
@@ -302,9 +251,10 @@ public class InMemoryTaskManager implements TaskManager {
         if (result == null) {
             throw new IllegalArgumentException("Task with id: [" + task.getId() + "] does not exist.");
         } else {
-            tasksOrderByStartTime.removeIf(t -> Objects.equals(t.getId(), task.getId()));
             if (task.getStartTime() != null) {
                 addTaskToTreeSet(task);
+            } else {
+                tasksOrderByStartTime.removeIf(t -> Objects.equals(t.getId(), task.getId()));
             }
         }
     }
@@ -387,7 +337,6 @@ public class InMemoryTaskManager implements TaskManager {
         }
 
         tasksOrderByStartTime.removeIf(t -> Objects.equals(t.getId(), id));
-        updateCache();
         historyManager.remove(id);
     }
 
@@ -412,7 +361,6 @@ public class InMemoryTaskManager implements TaskManager {
 
         historyManager.remove(id);
         tasksOrderByStartTime.removeIf(t -> Objects.equals(t.getId(), id));
-        updateCache();
     }
 
     @Override
@@ -439,7 +387,7 @@ public class InMemoryTaskManager implements TaskManager {
             default -> {
             }
         }
-        checkTreeSetCache();
+        tasksOrderByStartTime.removeIf(t -> t.getType() == type);
     }
 
     @Override

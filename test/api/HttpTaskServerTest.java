@@ -247,4 +247,69 @@ class HttpTaskServerTest {
             Assertions.assertEquals(task, gson.fromJson(response.body(), SimpleTask.class));
         }
     }
+
+    @Test
+    public void shouldReturnPrioritized() throws IOException, InterruptedException {
+        TaskManager manager = Managers.getDefault();
+        SimpleTask[] tasks = {
+                (SimpleTask) addTime(createRandomSimpleTask()),
+                (SimpleTask) addTime(createRandomSimpleTask()),
+                (SimpleTask) addTime(createRandomSimpleTask()),
+                (SimpleTask) addTime(createRandomSimpleTask()),
+                (SimpleTask) addTime(createRandomSimpleTask()),
+                (SimpleTask) addTime(createRandomSimpleTask())
+        };
+
+        for (SimpleTask task : tasks) {
+            try {
+                manager.addTask(task);
+            } catch (Exception ignored) {
+            }
+        }
+        try (HttpTaskServer ignored = new HttpTaskServer(manager)) {
+            HttpResponse<String> response;
+            HttpClient client = HttpClient.newHttpClient();
+            response = client.send(HttpRequest.newBuilder()
+                            .uri(URI.create("http://localhost:8080/prioritized"))
+                            .GET()
+                            .timeout(Duration.ofSeconds(15))
+                            .build(),
+                    HttpResponse.BodyHandlers.ofString());
+            System.out.println(response.body());
+            System.out.println(response.statusCode());
+        }
+    }
+
+    @Test
+    public void shouldReturnHistory() throws IOException, InterruptedException {
+        TaskManager manager = Managers.getDefault();
+        SimpleTask[] tasks = {
+                (SimpleTask) addTime(createRandomSimpleTask()),
+                (SimpleTask) addTime(createRandomSimpleTask()),
+                (SimpleTask) addTime(createRandomSimpleTask()),
+                (SimpleTask) addTime(createRandomSimpleTask()),
+                (SimpleTask) addTime(createRandomSimpleTask()),
+                (SimpleTask) addTime(createRandomSimpleTask())
+        };
+
+        for (SimpleTask task : tasks) {
+            try {
+                manager.addTask(task);
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
+            }
+        }
+        try (HttpTaskServer ignored = new HttpTaskServer(manager)) {
+            HttpResponse<String> response;
+            HttpClient client = HttpClient.newHttpClient();
+            response = client.send(HttpRequest.newBuilder()
+                            .uri(URI.create("http://localhost:8080/history"))
+                            .GET()
+                            .timeout(Duration.ofSeconds(15))
+                            .build(),
+                    HttpResponse.BodyHandlers.ofString());
+            System.out.println(response.body());
+            System.out.println(response.statusCode());
+        }
+    }
 }

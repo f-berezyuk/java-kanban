@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
+import api.HandlerUtilities;
 import api.adapters.SimpleTaskListTypeToken;
 import com.google.gson.JsonSyntaxException;
 import com.sun.net.httpserver.HttpExchange;
@@ -26,13 +27,17 @@ public class TaskHandler extends BaseHandler implements HttpHandler {
 
     @Override
     public void handle(HttpExchange exchange) throws IOException {
-        TaskHandlerEndpoint endpoint = getEndpoint(exchange);
-        switch (endpoint) {
-            case GET_TASK -> handleGetTask(exchange);
-            case POST_TASK -> handlePostTask(exchange);
-            case GET_TASKS -> handleGetTasks(exchange);
-            case DELETE_TASK -> handleDeleteTask(exchange);
-            case GET_SUBTASKS, UNKNOWN -> writeEndpoint404Response(exchange);
+        try {
+            TaskHandlerEndpoint endpoint = getEndpoint(exchange);
+            switch (endpoint) {
+                case GET_TASK -> handleGetTask(exchange);
+                case POST_TASK -> handlePostTask(exchange);
+                case GET_TASKS -> handleGetTasks(exchange);
+                case DELETE_TASK -> handleDeleteTask(exchange);
+                case GET_SUBTASKS, UNKNOWN -> writeEndpoint404Response(exchange);
+            }
+        } catch (IOException e) {
+            HandlerUtilities.write500(exchange, e);
         }
     }
 
@@ -51,7 +56,9 @@ public class TaskHandler extends BaseHandler implements HttpHandler {
         writeResponse(exchange, "Таск успешно удалён.", 200);
     }
 
-    /** @noinspection unchecked*/
+    /**
+     * @noinspection unchecked
+     */
     private void handleGetTasks(HttpExchange exchange) throws IOException {
         List<SimpleTask> tasks = (List<SimpleTask>) manager.getAllTasksByType(TaskType.TASK);
         writeResponse(exchange, gson.toJson(tasks, new SimpleTaskListTypeToken().getType()), 200);
@@ -111,12 +118,16 @@ public class TaskHandler extends BaseHandler implements HttpHandler {
     }
 
     public void createOrUpdateTask(HttpExchange exchange, Task task) throws IOException {
-        if (task.getId() != null) {
-            manager.updateTask(task);
-            writeResponse(exchange, "Успешно обновлён таск с id: " + task.getId(), 201);
-        } else {
-            manager.addTask(task);
-            writeResponse(exchange, "Успешно добавлен таск", 201);
+        try {
+            if (task.getId() != null) {
+                manager.updateTask(task);
+                writeResponse(exchange, "Успешно обновлён таск с id: " + task.getId(), 201);
+            } else {
+                manager.addTask(task);
+                writeResponse(exchange, "Успешно добавлен таск", 201);
+            }
+        } catch (IllegalArgumentException e) {
+            writeResponse(exchange, e.getMessage(), 406);
         }
     }
 }
