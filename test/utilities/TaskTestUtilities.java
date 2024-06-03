@@ -1,4 +1,4 @@
-package tracker;
+package utilities;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -23,7 +23,7 @@ public class TaskTestUtilities {
 
     public static Task addTime(Task task) {
         task.setStartTime(LocalDateTime.now());
-        task.setDuration(Duration.ofMinutes(random.nextInt()));
+        task.setDuration(Duration.ofMinutes(random.nextInt(0, Integer.MAX_VALUE)));
         return task;
     }
 

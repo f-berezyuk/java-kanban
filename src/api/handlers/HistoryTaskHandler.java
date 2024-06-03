@@ -1,20 +1,26 @@
-package API;
+package api.handlers;
 
 import java.io.IOException;
 
+import api.HandlerUtilities;
 import com.sun.net.httpserver.HttpExchange;
+import tracker.TaskManager;
 
-import static API.HistoryHandlerEndpoint.GET_HISTORY;
-import static API.HistoryHandlerEndpoint.UNKNOWN;
+import static api.handlers.HistoryHandlerEndpoint.GET_HISTORY;
+import static api.handlers.HistoryHandlerEndpoint.UNKNOWN;
 
 public class HistoryTaskHandler extends BaseHandler {
+    public HistoryTaskHandler(TaskManager manager) {
+        super(manager);
+    }
+
     @Override
     public void handle(HttpExchange exchange) throws IOException {
         HistoryHandlerEndpoint endpoint = getEndpoint(exchange);
         if (endpoint == GET_HISTORY) {
             handleGetHistory(exchange);
         } else {
-            writeResponse(exchange, "Такого эндпоинта не существует", 404);
+            HandlerUtilities.writeEndpoint404Response(exchange);
         }
     }
 

@@ -85,5 +85,27 @@ public class TrackerUtilities {
         dto.parent = task.getType() == TaskType.SUB ? ((SubTask) task).getParent() : null;
         return dto;
     }
+
+    public static String toPrettyDuration(Duration duration) {
+        StringBuilder result = new StringBuilder();
+        if (Math.abs(duration.toDays()) > 0) {
+            long daysPart = duration.toDaysPart();
+            result.append(String.format("%02d %s ", daysPart, getNoun(daysPart)));
+        }
+
+        result.append(String.format("%02d:%02d", duration.toHoursPart(), duration.toMinutesPart()));
+
+        return result.toString();
+    }
+
+    private static String getNoun(long days) {
+        if (days == 1) {
+            return "день";
+        }
+        if (days > 1 && days < 5) {
+            return "дня";
+        }
+        return "дней";
+    }
 }
 

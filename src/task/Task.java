@@ -97,7 +97,7 @@ public abstract class Task {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm dd.MM.yyyy");
             s = s + String.format(". Start: [%s]. Duration: [%s]. End: [%s].",
                     startTime.format(formatter),
-                    duration,
+                    TrackerUtilities.toPrettyDuration(duration),
                     getEndTime().format(formatter));
         }
         return s;
