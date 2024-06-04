@@ -6,6 +6,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import api.adapters.EpicTaskListTypeToken;
@@ -49,7 +50,7 @@ class HttpTaskServerTest {
         return response;
     }
 
-    private static void postRequest(TaskManager manager, String taskJson, String path) throws Exception {
+    private static HttpResponse<String> postRequest(TaskManager manager, String taskJson, String path) throws Exception {
         try (HttpTaskServer ignored = new HttpTaskServer(manager)) {
             HttpResponse<String> response;
             HttpClient client = HttpClient.newHttpClient();
@@ -63,6 +64,8 @@ class HttpTaskServerTest {
                     HttpResponse.BodyHandlers.ofString());
             System.out.println(response.body());
             System.out.println(response.statusCode());
+
+            return response;
         }
     }
 
@@ -251,20 +254,11 @@ class HttpTaskServerTest {
     @Test
     public void shouldReturnPrioritized() throws IOException, InterruptedException {
         TaskManager manager = Managers.getDefault();
-        SimpleTask[] tasks = {
-                (SimpleTask) addTime(createRandomSimpleTask()),
-                (SimpleTask) addTime(createRandomSimpleTask()),
-                (SimpleTask) addTime(createRandomSimpleTask()),
-                (SimpleTask) addTime(createRandomSimpleTask()),
-                (SimpleTask) addTime(createRandomSimpleTask()),
-                (SimpleTask) addTime(createRandomSimpleTask())
-        };
 
-        for (SimpleTask task : tasks) {
-            try {
-                manager.addTask(task);
-            } catch (Exception ignored) {
-            }
+        for (int i = 0; i < 10; i++) {
+            manager.addTask(addTime(createRandomSimpleTask(),
+                    LocalDateTime.now().plus(Duration.ofHours(i)),
+                    Duration.ofMinutes(i + 1)));
         }
         try (HttpTaskServer ignored = new HttpTaskServer(manager)) {
             HttpResponse<String> response;
@@ -311,5 +305,21 @@ class HttpTaskServerTest {
             System.out.println(response.body());
             System.out.println(response.statusCode());
         }
+    }
+
+    @Test
+    public void shouldReturn406WhenIntersect() throws Exception {
+        TaskManager manager = Managers.getDefault();
+        LocalDateTime now = LocalDateTime.now();
+        SimpleTask task1 = (SimpleTask) addTime(createRandomSimpleTask(), now, Duration.ofMinutes(100));
+        SimpleTask task2 = (SimpleTask) addTime(createRandomSimpleTask(), now.plus(Duration.ofMinutes(10)),
+                Duration.ofMinutes(100));
+        String taskJson1 = gson.toJson(task1, SimpleTask.class);
+        String taskJson2 = gson.toJson(task2, SimpleTask.class);
+        String path = "/tasks";
+        HttpResponse<String> response1 = postRequest(manager, taskJson1, path);
+        Assertions.assertEquals(201, response1.statusCode());
+        HttpResponse<String> response2 = postRequest(manager, taskJson2, path);
+        Assertions.assertEquals(406, response2.statusCode());
     }
 }

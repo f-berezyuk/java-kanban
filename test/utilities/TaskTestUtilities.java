@@ -22,8 +22,14 @@ public class TaskTestUtilities {
     }
 
     public static Task addTime(Task task) {
-        task.setStartTime(LocalDateTime.now().plus(Duration.ofMinutes(random.nextLong(0, 10000))));
-        task.setDuration(Duration.ofMinutes(random.nextInt(0, 1200)));
+        LocalDateTime startTime = LocalDateTime.now().plus(Duration.ofMinutes(random.nextLong(0, 10000)));
+        Duration duration = Duration.ofMinutes(random.nextInt(0, 1200));
+        return addTime(task, startTime, duration);
+    }
+
+    public static Task addTime(Task task, LocalDateTime startTime, Duration duration) {
+        task.setStartTime(startTime);
+        task.setDuration(duration);
         return task;
     }
 
