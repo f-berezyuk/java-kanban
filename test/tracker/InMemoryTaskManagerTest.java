@@ -20,11 +20,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static tracker.TaskTestUtilities.assertListEqualsNoOrder;
-import static tracker.TaskTestUtilities.createRandomEpicTask;
-import static tracker.TaskTestUtilities.createRandomSimpleTask;
-import static tracker.TaskTestUtilities.createRandomSubTask;
-import static tracker.TaskTestUtilities.random;
+import static utilities.TaskTestUtilities.assertListEqualsNoOrder;
+import static utilities.TaskTestUtilities.createRandomEpicTask;
+import static utilities.TaskTestUtilities.createRandomSimpleTask;
+import static utilities.TaskTestUtilities.createRandomSubTask;
+import static utilities.TaskTestUtilities.random;
 
 class InMemoryTaskManagerTest {
     TaskManager taskManager;

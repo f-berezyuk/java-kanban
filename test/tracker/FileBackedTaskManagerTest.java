@@ -3,6 +3,8 @@ package tracker;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.LinkedList;
 
@@ -13,10 +15,10 @@ import task.Task;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertIterableEquals;
 import static org.junit.jupiter.api.Assertions.fail;
-import static tracker.TaskTestUtilities.addTime;
-import static tracker.TaskTestUtilities.createRandomEpicTask;
-import static tracker.TaskTestUtilities.createRandomSimpleTask;
-import static tracker.TaskTestUtilities.withId;
+import static utilities.TaskTestUtilities.addTime;
+import static utilities.TaskTestUtilities.createRandomEpicTask;
+import static utilities.TaskTestUtilities.createRandomSimpleTask;
+import static utilities.TaskTestUtilities.withId;
 
 class FileBackedTaskManagerTest {
     @Test
@@ -79,7 +81,9 @@ class FileBackedTaskManagerTest {
             LinkedList<Task> orderedTasks = new LinkedList<>();
 
             for (int i = 0; i < 10; i++) {
-                orderedTasks.add(withId(addTime(createRandomSimpleTask()), i));
+                orderedTasks.add(withId(addTime(createRandomSimpleTask(),
+                        LocalDateTime.now().plus(Duration.ofHours(i)),
+                        Duration.ofMinutes(i + 1)), i));
             }
             System.out.println(Arrays.toString(orderedTasks.toArray()));
 
